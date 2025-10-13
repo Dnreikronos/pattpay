@@ -13,3 +13,4 @@ Type of Change
 [ ] Tests
 [ ] CI/CD
 [ ] Breaking change
+[ ] Chore
