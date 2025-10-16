@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.17.1",
     "fastify": "^5.6.1"
   },
   "devDependencies": {
