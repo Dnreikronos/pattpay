@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useRef } from "react";
 import PixelClouds from "./components/PixelClouds";
 import PixelButton from "./components/PixelButton";
-import HowItWorksSimplified from "../components/sections/HowItWorksSimplified";
 import PhantomStyleCards from "../components/sections/PhantomStyleCards";
 
 export default function Home() {
@@ -120,11 +119,6 @@ export default function Home() {
             </motion.div>
           </div>
         </div>
-      </section>
-
-      <section className="relative z-0 mt-24">
-        {/* How It Works Section - Now split into 3 distinct sections! */}
-        <HowItWorksSimplified />
       </section>
 
       {/* Benefits Showcase - Phantom-style horizontal scroll */}
