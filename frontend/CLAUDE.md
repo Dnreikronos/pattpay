@@ -30,7 +30,7 @@ The choice of Solana is strategic: with high speed (65,000 TPS) and transaction 
 PattPay leverages the Solana ecosystem advantages to deliver:
 - **Instant payments** (<1 second)
 - **Extremely low costs** (fractions of a penny)
-- **Native integrations** with wallets like Phantom, Solflare, and Backpack
+- **Native integrations** with wallets like Solflare and Backpack
 - **On-chain stability and security** via auditable contracts
 
 #### Our Proposition
