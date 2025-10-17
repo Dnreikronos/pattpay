@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Smart contract engine - pixel art style -->
+  <g style="image-rendering: pixelated;">
+    <!-- Main gear/engine -->
+    <circle cx="100" cy="100" r="40" fill="#4F46E5"/>
+    <circle cx="100" cy="100" r="20" fill="#111827"/>
+
+    <!-- Gear teeth (pixel style) -->
+    <rect x="95" y="55" width="10" height="12" fill="#4F46E5"/>
+    <rect x="95" y="133" width="10" height="12" fill="#4F46E5"/>
+    <rect x="55" y="95" width="12" height="10" fill="#4F46E5"/>
+    <rect x="133" y="95" width="12" height="10" fill="#4F46E5"/>
+    <rect x="70" y="70" width="10" height="10" fill="#4F46E5"/>
+    <rect x="120" y="70" width="10" height="10" fill="#4F46E5"/>
+    <rect x="70" y="120" width="10" height="10" fill="#4F46E5"/>
+    <rect x="120" y="120" width="10" height="10" fill="#4F46E5"/>
+
+    <!-- Lock/security icon -->
+    <rect x="140" y="50" width="20" height="24" fill="#F2B94B" rx="2"/>
+    <rect x="143" y="46" width="14" height="10" rx="7" fill="none" stroke="#F2B94B" stroke-width="3"/>
+
+    <!-- Light bulb (smart) -->
+    <circle cx="50" cy="140" r="12" fill="#818CF8"/>
+    <rect x="46" y="152" width="8" height="6" fill="#818CF8"/>
+    <line x1="35" y1="130" x2="28" y2="123" stroke="#818CF8" stroke-width="2"/>
+    <line x1="65" y1="130" x2="72" y2="123" stroke="#818CF8" stroke-width="2"/>
+
+    <!-- Code brackets -->
+    <path d="M 30 85 L 20 95 L 30 105" stroke="#818CF8" stroke-width="3" fill="none"/>
+    <path d="M 170 85 L 180 95 L 170 105" stroke="#818CF8" stroke-width="3" fill="none"/>
+  </g>
+</svg>
