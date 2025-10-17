@@ -81,10 +81,8 @@ export default function CardShowcase() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const [activeCardIndex, setActiveCardIndex] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
-  const [dragOffset, setDragOffset] = useState(0)
 
   // Scroll-based deck animation
   const { scrollYProgress } = useScroll({
@@ -144,15 +142,6 @@ export default function CardShowcase() {
   // Navigation buttons opacity - only show when fully spread
   const navOpacity = useTransform(deckProgress, [0.8, 1], [0, 1])
 
-  // Detect screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
   // Navigation handlers
   const goToPrevious = () => {
@@ -180,14 +169,12 @@ export default function CardShowcase() {
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true)
     setDragStartX(e.clientX)
-    setDragOffset(0)
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return
 
     const currentOffset = e.clientX - dragStartX
-    setDragOffset(currentOffset)
 
     // Threshold to change card: 100px
     if (Math.abs(currentOffset) > 100) {
@@ -199,33 +186,15 @@ export default function CardShowcase() {
         goToNext()
       }
       setIsDragging(false)
-      setDragOffset(0)
     }
   }
 
   const handleMouseUp = () => {
     setIsDragging(false)
-    setDragOffset(0)
   }
 
   const handleMouseLeave = () => {
     setIsDragging(false)
-    setDragOffset(0)
-  }
-
-  // Calculate translateX based on active card index
-  // Desktop: Move enough to show remaining cards (1 click only)
-  // We show 2-3 cards initially, clicking once shows the rest
-  const calculateDesktopTranslateX = () => {
-    if (activeCardIndex === 0) return 0
-    // Move approximately 3 cards worth to show remaining cards
-    return -(3 * 384)
-  }
-
-  const calculateMobileTranslateX = () => {
-    if (activeCardIndex === 0) return 0
-    // Move 2 cards worth on mobile
-    return -(2 * (isMobile ? 300 : 360))
   }
 
   return (
@@ -233,7 +202,7 @@ export default function CardShowcase() {
       {/* Desktop version: button-controlled carousel */}
       <section
         ref={sectionRef}
-        className="relative hidden lg:block bg-background py-20 overflow-hidden"
+        className="relative hidden lg:block bg-background py-12 md:py-16 lg:py-20 overflow-hidden"
         onKeyDown={handleKeyDown}
         role="region"
         aria-label="PattPay Benefits Showcase"
@@ -244,10 +213,10 @@ export default function CardShowcase() {
           <PixelClouds />
         </div>
         {/* Header - Above cards */}
-        <div className="mx-auto max-w-[1440px] px-10 mb-16 relative z-10">
+        <div className="mx-auto max-w-[1440px] px-6 md:px-8 lg:px-10 mb-10 md:mb-12 lg:mb-16 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <motion.h2
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-foreground mb-6"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl leading-relaxed text-foreground mb-4 md:mb-6"
               style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
               initial={{ opacity: 0, y: -30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -258,7 +227,7 @@ export default function CardShowcase() {
             </motion.h2>
 
             <motion.p
-              className="font-mono text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-3xl mx-auto"
+              className="font-mono text-sm md:text-base lg:text-lg xl:text-xl text-muted leading-relaxed max-w-3xl mx-auto px-4"
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -271,7 +240,7 @@ export default function CardShowcase() {
 
         {/* Cards carousel - Full width */}
         <div
-          className="relative min-h-[520px] flex items-center justify-center z-10"
+          className="relative min-h-[480px] md:min-h-[520px] flex items-center justify-center z-10"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -313,8 +282,8 @@ export default function CardShowcase() {
             onClick={goToPrevious}
             disabled={activeCardIndex === 0}
             className={`
-              absolute left-6 top-1/2 -translate-y-1/2 z-20
-              w-12 h-12 rounded-full bg-brand text-white
+              absolute left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 z-20
+              w-10 h-10 md:w-12 md:h-12 rounded-full bg-brand text-white
               flex items-center justify-center
               transition-all duration-300 cursor-pointer
               hover:scale-110 hover:shadow-[2px_2px_0_0_rgba(129,140,248,1)]
@@ -328,9 +297,9 @@ export default function CardShowcase() {
             <Image
               src="/chevron-right.svg"
               alt="previous"
-              width={24}
-              height={24}
-              className="rotate-180 brightness-0 invert"
+              width={20}
+              height={20}
+              className="rotate-180 brightness-0 invert md:w-6 md:h-6"
             />
           </motion.button>
 
@@ -338,8 +307,8 @@ export default function CardShowcase() {
             onClick={goToNext}
             disabled={activeCardIndex >= 1}
             className={`
-              absolute right-6 top-1/2 -translate-y-1/2 z-20
-              w-12 h-12 rounded-full bg-brand text-white
+              absolute right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 z-20
+              w-10 h-10 md:w-12 md:h-12 rounded-full bg-brand text-white
               flex items-center justify-center
               transition-all duration-300 cursor-pointer
               hover:scale-110 hover:shadow-[2px_2px_0_0_rgba(129,140,248,1)]
@@ -353,46 +322,40 @@ export default function CardShowcase() {
             <Image
               src="/chevron-right.svg"
               alt="next"
-              width={24}
-              height={24}
-              className="brightness-0 invert"
+              width={20}
+              height={20}
+              className="brightness-0 invert md:w-6 md:h-6"
             />
           </motion.button>
         </div>
       </section>
 
-      {/* Mobile/Tablet version: button-controlled carousel */}
-      <section className="relative lg:hidden bg-background py-16 overflow-hidden">
+      {/* Mobile/Tablet version: horizontal scroll */}
+      <section className="relative lg:hidden bg-background py-10 md:py-12 overflow-hidden">
         {/* Pixel Clouds Background */}
         <div className="absolute inset-0 pointer-events-none">
           <PixelClouds />
         </div>
-        <div className="mx-auto max-w-7xl px-6 relative z-10">
-          <div className="text-center mb-12 space-y-6">
+        <div className="mx-auto max-w-7xl relative z-10">
+          <div className="text-center mb-8 md:mb-10 space-y-4 md:space-y-6 px-4">
             <h2
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-foreground"
+              className="text-xl sm:text-2xl md:text-3xl leading-relaxed text-foreground"
               style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
             >
               Why <span className="text-brand">PattPay?</span>
             </h2>
-            <p className="font-mono text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-3xl mx-auto">
+            <p className="font-mono text-sm md:text-base text-muted leading-relaxed max-w-2xl mx-auto">
               Discover the benefits that make PattPay the ideal choice for on-chain recurring payments.
             </p>
           </div>
 
+          {/* Scroll container */}
           <div className="relative">
-            <div className="overflow-hidden">
-              <motion.div
-                className="flex gap-6"
-                animate={{
-                  x: calculateMobileTranslateX()
-                }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 300,
-                  damping: 30
-                }}
-              >
+            <div
+              id="mobile-cards-scroll"
+              className="overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory scroll-smooth"
+            >
+              <div className="flex gap-3 sm:gap-4 md:gap-5 px-4 md:px-6 pb-6">
                 {benefitCards.map((card, index) => (
                   <MobileCard
                     key={card.id}
@@ -400,57 +363,59 @@ export default function CardShowcase() {
                     index={index}
                   />
                 ))}
-              </motion.div>
+                {/* Spacer for better last card visibility */}
+                <div className="w-4 shrink-0" aria-hidden="true" />
+              </div>
             </div>
 
-            {/* Mobile Navigation Arrows */}
+            {/* Scroll indicator hint - more visible */}
+            <div className="absolute bottom-6 right-0 w-24 h-[calc(100%-24px)] bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none" />
+
+            {/* Mobile Navigation Arrows - Fixed position */}
             <button
-              onClick={goToPrevious}
-              disabled={activeCardIndex === 0}
-              className={`
-                absolute left-0 top-1/2 -translate-y-1/2 z-10
-                w-10 h-10 rounded-full bg-brand text-white
-                flex items-center justify-center
-                transition-all duration-300 cursor-pointer
-                ${activeCardIndex === 0
-                  ? 'opacity-0 pointer-events-none'
-                  : 'opacity-80 hover:opacity-100'
-                }
-              `}
+              onClick={() => {
+                const container = document.getElementById('mobile-cards-scroll');
+                if (container) container.scrollBy({ left: -280, behavior: 'smooth' });
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-brand/90 text-white flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-brand hover:scale-105 active:scale-95"
               aria-label="Previous card"
             >
               <Image
                 src="/chevron-right.svg"
                 alt="previous"
-                width={20}
-                height={20}
+                width={18}
+                height={18}
                 className="rotate-180 brightness-0 invert"
               />
             </button>
 
             <button
-              onClick={goToNext}
-              disabled={activeCardIndex >= 1}
-              className={`
-                absolute right-0 top-1/2 -translate-y-1/2 z-10
-                w-10 h-10 rounded-full bg-brand text-white
-                flex items-center justify-center
-                transition-all duration-300 cursor-pointer
-                ${activeCardIndex >= 1
-                  ? 'opacity-0 pointer-events-none'
-                  : 'opacity-80 hover:opacity-100'
-                }
-              `}
+              onClick={() => {
+                const container = document.getElementById('mobile-cards-scroll');
+                if (container) container.scrollBy({ left: 280, behavior: 'smooth' });
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-brand/90 text-white flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-brand hover:scale-105 active:scale-95"
               aria-label="Next card"
             >
               <Image
                 src="/chevron-right.svg"
                 alt="next"
-                width={20}
-                height={20}
+                width={18}
+                height={18}
                 className="brightness-0 invert"
               />
             </button>
+
+            {/* Scroll dots indicator */}
+            <div className="flex justify-center gap-1.5 mt-4 md:hidden">
+              {benefitCards.map((_, index) => (
+                <div
+                  key={index}
+                  className="w-1.5 h-1.5 rounded-full bg-muted/40"
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -589,7 +554,7 @@ function DesktopCard({
     <motion.article
       ref={cardRef}
       className={`
-        relative w-[360px] h-[480px] shrink-0 rounded-none p-7 border-4
+        relative w-[340px] lg:w-[360px] h-[460px] lg:h-[480px] shrink-0 rounded-none p-6 lg:p-7 border-4
         flex flex-col justify-between
         transition-all duration-300 ease-out
         focus-within:ring-2 focus-within:ring-white focus-within:ring-offset-2
@@ -665,20 +630,20 @@ function DesktopCard({
 
       {/* Content with stagger animation */}
       <motion.div
-        className="space-y-5"
+        className="space-y-4 lg:space-y-5"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
         <motion.h3
-          className="text-2xl leading-tight"
+          className="text-xl lg:text-2xl leading-tight"
           style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
           variants={itemVariants}
           dangerouslySetInnerHTML={{ __html: card.title }}
         />
         <motion.p
-          className="font-['DM_Mono'] text-lg leading-relaxed opacity-80"
+          className="font-['DM_Mono'] text-base lg:text-lg leading-relaxed opacity-80"
           variants={itemVariants}
           dangerouslySetInnerHTML={{ __html: card.subtitle }}
         />
@@ -686,7 +651,7 @@ function DesktopCard({
 
       {/* Visual with fade in and scale */}
       <motion.div
-        className="relative w-full h-36"
+        className="relative w-full h-32 lg:h-36"
         initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
         whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         viewport={{ once: true, amount: 0.3 }}
@@ -701,9 +666,9 @@ function DesktopCard({
           <Image
             src={card.visual}
             alt={card.title}
-            width={180}
-            height={180}
-            className="pixelated"
+            width={160}
+            height={160}
+            className="pixelated lg:w-[180px] lg:h-[180px]"
             style={{ imageRendering: 'pixelated' }}
             priority={index === 0}
           />
@@ -725,8 +690,8 @@ function MobileCard({
   return (
     <motion.article
       className={`
-        relative min-w-[280px] sm:min-w-[340px] h-[420px] shrink-0 rounded-none p-6 border-4
-        flex flex-col justify-between
+        relative w-[260px] sm:w-[280px] md:w-[320px] h-[280px] sm:h-[340px] md:h-[380px] shrink-0 rounded-none p-3 sm:p-4 md:p-5 border-2 sm:border-3 md:border-4
+        flex flex-col justify-between snap-center
         ${bgClass}
       `}
       initial={{ opacity: 0, filter: 'blur(8px)', scale: 0.95 }}
@@ -739,12 +704,12 @@ function MobileCard({
       role="article"
       aria-label={card.title}
     >
-      {/* Pixel art pattern background */}
+      {/* Pixel art pattern background - lighter on mobile */}
       <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        className="absolute inset-0 opacity-[0.06] sm:opacity-[0.08] pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(${card.accentColor} 1px, transparent 1px), linear-gradient(90deg, ${card.accentColor} 1px, transparent 1px)`,
-          backgroundSize: '20px 20px',
+          backgroundSize: '16px 16px',
         }}
       />
 
@@ -766,46 +731,46 @@ function MobileCard({
         }}
       />
 
-      {/* Corner pixel decorations */}
+      {/* Corner pixel decorations - hidden on mobile for cleaner look */}
       <div
-        className="absolute top-0 right-0 w-2 h-2 pointer-events-none"
+        className="absolute top-0 right-0 w-1.5 h-1.5 sm:w-2 sm:h-2 pointer-events-none hidden sm:block"
         style={{ backgroundColor: card.accentColor, opacity: 0.4 }}
       />
       <div
-        className="absolute bottom-0 left-0 w-2 h-2 pointer-events-none"
+        className="absolute bottom-0 left-0 w-1.5 h-1.5 sm:w-2 sm:h-2 pointer-events-none hidden sm:block"
         style={{ backgroundColor: card.accentColor, opacity: 0.4 }}
       />
 
       {/* Large accent area behind content */}
       <div
-        className="absolute top-0 left-0 w-full h-32 opacity-[0.05] pointer-events-none"
+        className="absolute top-0 left-0 w-full h-24 sm:h-32 opacity-[0.04] sm:opacity-[0.05] pointer-events-none"
         style={{
           background: `radial-gradient(ellipse at top left, ${card.accentColor} 0%, transparent 70%)`,
         }}
       />
 
       <motion.div
-        className="space-y-4"
+        className="space-y-2 sm:space-y-2.5"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
         <motion.h3
-          className="text-xl leading-tight"
+          className="text-xs leading-tight sm:text-sm md:text-base"
           style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
           variants={itemVariants}
           dangerouslySetInnerHTML={{ __html: card.title }}
         />
         <motion.p
-          className="font-['DM_Mono'] text-base leading-relaxed opacity-80"
+          className="font-['DM_Mono'] text-[10px] leading-snug sm:text-xs md:text-sm sm:leading-relaxed opacity-80"
           variants={itemVariants}
           dangerouslySetInnerHTML={{ __html: card.subtitle }}
         />
       </motion.div>
 
       <motion.div
-        className="relative w-full h-28"
+        className="relative w-full h-20 sm:h-20 md:h-24"
         initial={{ opacity: 0, scale: 0.9, filter: 'blur(6px)' }}
         whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         viewport={{ once: true, amount: 0.3 }}
@@ -820,9 +785,9 @@ function MobileCard({
           <Image
             src={card.visual}
             alt={card.title}
-            width={140}
-            height={140}
-            className="pixelated"
+            width={100}
+            height={100}
+            className="pixelated sm:w-[100px] sm:h-[100px] md:w-[120px] md:h-[120px]"
             style={{ imageRendering: 'pixelated' }}
           />
         </div>
