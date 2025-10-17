@@ -11,74 +11,80 @@ interface BenefitCard {
   title: string
   subtitle: string
   visual: string
-  bgVariant: 'brand' | 'dark' | 'secondary' | 'neutral'
+  bgVariant: 'wallet' | 'recurring' | 'contracts' | 'fees' | 'analytics' | 'creators'
   ctaText?: string
+  accentColor?: string // Subtle pixel art accent
 }
 
 const benefitCards: BenefitCard[] = [
   {
     id: 'wallets',
-    badge: '1.0',
-    title: 'Multiple wallets, one flow.',
-    subtitle: 'Connect Phantom and other wallets; manage everything in a single dashboard.',
-    visual: '/cards/wallet.svg',
-    bgVariant: 'brand',
+    title: 'Any wallet, <span class="text-brand">anywhere.</span>',
+    subtitle: 'Solflare, Backpack, or any wallet—<strong>connect once, pay everywhere.</strong> Your keys, your control.',
+    visual: '/cards/Image1.png',
+    bgVariant: 'wallet',
+    accentColor: '#8B7AE6', // Soft purple
   },
   {
     id: 'recurring',
-    badge: '2.0',
-    title: 'Recurring by design.',
-    subtitle: 'Automated on-chain subscriptions with configurable billing cycles.',
-    visual: '/cards/loop.svg',
-    bgVariant: 'secondary',
+    title: 'Set it. Forget it. <span class="text-brand">Forever.</span>',
+    subtitle: 'Subscriptions that run on <strong>autopilot</strong>—daily, weekly, monthly. <strong>Zero manual work, 100% on-chain.</strong>',
+    visual: '/cards/Image2.png',
+    bgVariant: 'recurring',
+    accentColor: '#6BC9A8', // Soft mint green
   },
   {
     id: 'contracts',
-    badge: '3.0',
-    title: 'Smart contracts that just run.',
-    subtitle: 'Deploy, execute, and monitor subscriptions with secure smart contracts.',
-    visual: '/cards/engine.svg',
-    bgVariant: 'dark',
+    title: '<span class="text-brand">Smart contracts.</span> Zero trust needed.',
+    subtitle: 'Your subscriptions run <strong>on-chain, exactly as coded.</strong> No intermediaries. No downtime. Just pure execution.',
+    visual: '/cards/Image3.png',
+    bgVariant: 'contracts',
+    accentColor: '#6BA3E6', // Soft blue
   },
   {
     id: 'fees',
-    badge: '4.0',
-    title: 'Fees you can actually ignore.',
-    subtitle: 'Low costs on Solana, full transparency per transaction.',
-    visual: '/cards/fee.svg',
-    bgVariant: 'neutral',
+    title: 'Built on <span class="text-brand">Solana.</span> Built for speed.',
+    subtitle: '<strong>Lightning-fast transactions</strong> with minimal network fees. Your subscriptions process <strong>instantly</strong>, without the blockchain bloat.',
+    visual: '/cards/Image4.png',
+    bgVariant: 'fees',
+    accentColor: '#E6B76B', // Soft gold
   },
   {
     id: 'insights',
-    badge: '5.0',
-    title: 'Insights in real-time.',
-    subtitle: 'Live metrics: churn rate, MRR, payment success, and more.',
-    visual: '/cards/analytics.svg',
-    bgVariant: 'secondary',
+    title: 'Data you can trust. <span class="text-brand">Live.</span>',
+    subtitle: 'Track MRR, churn, success rates, and revenue—<strong>updated every block.</strong> No delays, no estimates.',
+    visual: '/cards/Image5.png',
+    bgVariant: 'analytics',
+    accentColor: '#E68BB7', // Soft pink
   },
   {
     id: 'creators',
-    badge: '6.0',
-    title: 'Built for creators & businesses.',
-    subtitle: 'Payment links, subscription plans, and team-based permissions.',
-    visual: '/cards/bridge.svg',
-    bgVariant: 'brand',
+    title: 'Made for <span class="text-brand">builders</span> like you.',
+    subtitle: 'Payment links, tiered plans, team access. <strong>Launch your subscription business in minutes, not months.</strong>',
+    visual: '/cards/Image6.png',
+    bgVariant: 'creators',
+    accentColor: '#6BC9E6', // Soft cyan
   },
 ]
 
 const cardBgClasses = {
-  brand: 'bg-brand border-border',
-  dark: 'bg-[#111827] text-white border-[#1F2937]',
-  secondary: 'bg-brand-300 border-brand-300',
-  neutral: 'bg-surface border-border',
+  wallet: 'bg-[#F5F5F7] border-border text-foreground',
+  recurring: 'bg-[#F5F5F7] border-border text-foreground',
+  contracts: 'bg-[#F5F5F7] border-border text-foreground',
+  fees: 'bg-[#F5F5F7] border-border text-foreground',
+  analytics: 'bg-[#F5F5F7] border-border text-foreground',
+  creators: 'bg-[#F5F5F7] border-border text-foreground',
 }
 
-export default function PhantomStyleCards() {
+export default function CardShowcase() {
   const trackRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLDivElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStartX, setDragStartX] = useState(0)
+  const [dragOffset, setDragOffset] = useState(0)
 
   // Scroll-based deck animation
   const { scrollYProgress } = useScroll({
@@ -95,14 +101,20 @@ export default function PhantomStyleCards() {
   })
 
   // Move the entire track - slightly left of center when stacked, with left padding when spread
-  // When spread, we want the padding-left like before (pl-[20%])
-  // Approximate 20% of viewport for desktop
-  const leftPadding = typeof window !== 'undefined' ? window.innerWidth * 0.15 : 300
+  // Use state to avoid hydration mismatch
+  const [viewportValues, setViewportValues] = useState({ leftPadding: 300, stackedPosition: -150 })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setViewportValues({
+        leftPadding: window.innerWidth * 0.15,
+        stackedPosition: -window.innerWidth * 0.1
+      })
+    }
+  }, [])
 
   // Base offset for deck animation (slightly left of center when stacked, leftPadding when spread)
-  // Position between left and center
-  const stackedPosition = typeof window !== 'undefined' ? -window.innerWidth * 0.1 : -150
-  const baseTrackOffset = useTransform(deckProgress, [0, 1], [stackedPosition, leftPadding])
+  const baseTrackOffset = useTransform(deckProgress, [0, 1], [viewportValues.stackedPosition, viewportValues.leftPadding])
 
   // Navigation offset as motion value with spring animation
   const navOffsetValue = useMotionValue(0)
@@ -121,10 +133,11 @@ export default function PhantomStyleCards() {
   // Combine base offset + navigation offset
   const trackOffset = useTransform(
     [baseTrackOffset, smoothNavOffset, deckProgress],
-    ([base, nav, progress]) => {
+    (latest: number[]) => {
+      const [base, nav, progress] = latest
       // Only apply navigation when deck is fully spread
       const navAmount = progress > 0.9 ? nav : 0
-      return (base as number) + (navAmount as number)
+      return base + navAmount
     }
   )
 
@@ -161,6 +174,43 @@ export default function PhantomStyleCards() {
     } else if (e.key === 'ArrowRight') {
       goToNext()
     }
+  }
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStartX(e.clientX)
+    setDragOffset(0)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+
+    const currentOffset = e.clientX - dragStartX
+    setDragOffset(currentOffset)
+
+    // Threshold to change card: 100px
+    if (Math.abs(currentOffset) > 100) {
+      if (currentOffset > 0) {
+        // Dragging right = go to previous
+        goToPrevious()
+      } else {
+        // Dragging left = go to next
+        goToNext()
+      }
+      setIsDragging(false)
+      setDragOffset(0)
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+    setDragOffset(0)
+  }
+
+  const handleMouseLeave = () => {
+    setIsDragging(false)
+    setDragOffset(0)
   }
 
   // Calculate translateX based on active card index
@@ -204,7 +254,7 @@ export default function PhantomStyleCards() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              Why PattPay?
+              Why <span className="text-brand">PattPay?</span>
             </motion.h2>
 
             <motion.p
@@ -220,7 +270,14 @@ export default function PhantomStyleCards() {
         </div>
 
         {/* Cards carousel - Full width */}
-        <div className="relative min-h-[520px] flex items-center justify-center z-10">
+        <div
+          className="relative min-h-[520px] flex items-center justify-center z-10"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          style={{ cursor: isDragging ? 'grabbing' : 'col-resize' }}
+        >
           <div className="w-full relative overflow-visible" style={{ perspective: '1500px', perspectiveOrigin: 'center center' }}>
             <motion.div
               ref={trackRef}
@@ -268,9 +325,13 @@ export default function PhantomStyleCards() {
               pointerEvents: activeCardIndex === 0 ? 'none' : 'auto'
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="square"/>
-            </svg>
+            <Image
+              src="/chevron-right.svg"
+              alt="previous"
+              width={24}
+              height={24}
+              className="rotate-180 brightness-0 invert"
+            />
           </motion.button>
 
           <motion.button
@@ -289,9 +350,13 @@ export default function PhantomStyleCards() {
               pointerEvents: activeCardIndex >= 1 ? 'none' : 'auto'
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="square"/>
-            </svg>
+            <Image
+              src="/chevron-right.svg"
+              alt="next"
+              width={24}
+              height={24}
+              className="brightness-0 invert"
+            />
           </motion.button>
         </div>
       </section>
@@ -308,7 +373,7 @@ export default function PhantomStyleCards() {
               className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-foreground"
               style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
             >
-              Why PattPay?
+              Why <span className="text-brand">PattPay?</span>
             </h2>
             <p className="font-mono text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-3xl mx-auto">
               Discover the benefits that make PattPay the ideal choice for on-chain recurring payments.
@@ -354,9 +419,13 @@ export default function PhantomStyleCards() {
               `}
               aria-label="Previous card"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="square"/>
-              </svg>
+              <Image
+                src="/chevron-right.svg"
+                alt="previous"
+                width={20}
+                height={20}
+                className="rotate-180 brightness-0 invert"
+              />
             </button>
 
             <button
@@ -374,9 +443,13 @@ export default function PhantomStyleCards() {
               `}
               aria-label="Next card"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="square"/>
-              </svg>
+              <Image
+                src="/chevron-right.svg"
+                alt="next"
+                width={20}
+                height={20}
+                className="brightness-0 invert"
+              />
             </button>
           </div>
         </div>
@@ -403,7 +476,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 0.5, ease: 'easeOut' }
+    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const }
   }
 }
 
@@ -516,12 +589,11 @@ function DesktopCard({
     <motion.article
       ref={cardRef}
       className={`
-        relative w-[360px] h-[480px] shrink-0 rounded-2xl p-7 border-2
+        relative w-[360px] h-[480px] shrink-0 rounded-none p-7 border-4
         flex flex-col justify-between
         transition-all duration-300 ease-out
-        focus-within:ring-2 focus-within:ring-brand focus-within:ring-offset-2
+        focus-within:ring-2 focus-within:ring-white focus-within:ring-offset-2
         ${bgClass}
-        ${card.bgVariant === 'dark' ? 'text-white' : 'text-fg'}
       `}
       initial={{ opacity: 0, filter: 'blur(10px)', scale: 0.95 }}
       whileInView={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
@@ -534,9 +606,10 @@ function DesktopCard({
         scale: deckScale,
         opacity: deckOpacity,
         transformStyle: 'preserve-3d',
+        borderColor: card.accentColor,
       }}
       whileHover={{
-        boxShadow: '4px 4px 0 0 rgba(129, 140, 248, 1)',
+        boxShadow: `8px 8px 0 0 ${card.accentColor}`,
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -545,51 +618,75 @@ function DesktopCard({
       aria-label={card.title}
       data-card-index={index}
     >
-      {/* Badge */}
-      {card.badge && (
-        <motion.div
-          className="absolute top-6 right-6"
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-        >
-          <span
-            className={`
-            font-['DM_Mono'] text-xs px-2.5 py-1 rounded-full border
-            ${card.bgVariant === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-brand/10 border-brand/20 text-brand'}
-          `}
-          >
-            {card.badge}
-          </span>
-        </motion.div>
-      )}
+      {/* Pixel art pattern background */}
+      <div
+        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(${card.accentColor} 1px, transparent 1px), linear-gradient(90deg, ${card.accentColor} 1px, transparent 1px)`,
+          backgroundSize: '20px 20px',
+        }}
+      />
+
+      {/* Top accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, ${card.accentColor}, transparent)`,
+          opacity: 0.3,
+        }}
+      />
+
+      {/* Bottom accent bar */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${card.accentColor})`,
+          opacity: 0.3,
+        }}
+      />
+
+      {/* Corner pixel decorations */}
+      <div
+        className="absolute top-0 right-0 w-2 h-2 pointer-events-none"
+        style={{ backgroundColor: card.accentColor, opacity: 0.4 }}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-2 h-2 pointer-events-none"
+        style={{ backgroundColor: card.accentColor, opacity: 0.4 }}
+      />
+
+      {/* Large accent area behind content */}
+      <div
+        className="absolute top-0 left-0 w-full h-32 opacity-[0.05] pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at top left, ${card.accentColor} 0%, transparent 70%)`,
+        }}
+      />
 
       {/* Content with stagger animation */}
       <motion.div
-        className="space-y-3 mt-4"
+        className="space-y-5"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
         <motion.h3
-          className="font-['Press_Start_2P'] text-lg leading-tight"
+          className="text-2xl leading-tight"
+          style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
           variants={itemVariants}
-        >
-          {card.title}
-        </motion.h3>
+          dangerouslySetInnerHTML={{ __html: card.title }}
+        />
         <motion.p
-          className="font-['DM_Mono'] text-sm leading-relaxed opacity-80"
+          className="font-['DM_Mono'] text-lg leading-relaxed opacity-80"
           variants={itemVariants}
-        >
-          {card.subtitle}
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: card.subtitle }}
+        />
       </motion.div>
 
       {/* Visual with fade in and scale */}
       <motion.div
-        className="relative w-full h-36 my-6"
+        className="relative w-full h-36"
         initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
         whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         viewport={{ once: true, amount: 0.3 }}
@@ -598,40 +695,20 @@ function DesktopCard({
         <div
           className="absolute inset-0 flex items-center justify-center"
           style={{
-            background: card.bgVariant === 'dark'
-              ? 'radial-gradient(circle at 50% 50%, rgba(129, 140, 248, 0.15) 0%, transparent 70%)'
-              : 'radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.08) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
           }}
         >
           <Image
             src={card.visual}
             alt={card.title}
-            width={160}
-            height={160}
-            className="pixelated opacity-90"
+            width={180}
+            height={180}
+            className="pixelated"
             style={{ imageRendering: 'pixelated' }}
+            priority={index === 0}
           />
         </div>
       </motion.div>
-
-      {/* CTA with fade in */}
-      <motion.a
-        href="#"
-        className={`
-          inline-flex items-center gap-2 font-['DM_Mono'] text-sm
-          underline underline-offset-4 decoration-1
-          transition-all duration-300
-          ${card.bgVariant === 'dark' ? 'text-white hover:text-brand-300' : 'text-brand hover:text-brand-600'}
-        `}
-        initial={{ opacity: 0, x: -10 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        whileHover={{ x: 4 }}
-      >
-        {card.ctaText || 'Learn more'}
-        <span>→</span>
-      </motion.a>
     </motion.article>
   )
 }
@@ -648,60 +725,87 @@ function MobileCard({
   return (
     <motion.article
       className={`
-        relative min-w-[280px] sm:min-w-[340px] h-[420px] shrink-0 rounded-2xl p-6 border-2
+        relative min-w-[280px] sm:min-w-[340px] h-[420px] shrink-0 rounded-none p-6 border-4
         flex flex-col justify-between
         ${bgClass}
-        ${card.bgVariant === 'dark' ? 'text-white' : 'text-fg'}
       `}
       initial={{ opacity: 0, filter: 'blur(8px)', scale: 0.95 }}
       whileInView={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
+      style={{
+        borderColor: card.accentColor,
+      }}
       role="article"
       aria-label={card.title}
     >
-      {card.badge && (
-        <motion.div
-          className="absolute top-6 right-6"
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-        >
-          <span
-            className={`
-            font-['DM_Mono'] text-xs px-2.5 py-1 rounded-full border
-            ${card.bgVariant === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-brand/10 border-brand/20 text-brand'}
-          `}
-          >
-            {card.badge}
-          </span>
-        </motion.div>
-      )}
+      {/* Pixel art pattern background */}
+      <div
+        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(${card.accentColor} 1px, transparent 1px), linear-gradient(90deg, ${card.accentColor} 1px, transparent 1px)`,
+          backgroundSize: '20px 20px',
+        }}
+      />
+
+      {/* Top accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, ${card.accentColor}, transparent)`,
+          opacity: 0.3,
+        }}
+      />
+
+      {/* Bottom accent bar */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1 pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${card.accentColor})`,
+          opacity: 0.3,
+        }}
+      />
+
+      {/* Corner pixel decorations */}
+      <div
+        className="absolute top-0 right-0 w-2 h-2 pointer-events-none"
+        style={{ backgroundColor: card.accentColor, opacity: 0.4 }}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-2 h-2 pointer-events-none"
+        style={{ backgroundColor: card.accentColor, opacity: 0.4 }}
+      />
+
+      {/* Large accent area behind content */}
+      <div
+        className="absolute top-0 left-0 w-full h-32 opacity-[0.05] pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at top left, ${card.accentColor} 0%, transparent 70%)`,
+        }}
+      />
 
       <motion.div
-        className="space-y-2.5 mt-3"
+        className="space-y-4"
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
         <motion.h3
-          className="font-['Press_Start_2P'] text-base leading-tight"
+          className="text-xl leading-tight"
+          style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
           variants={itemVariants}
-        >
-          {card.title}
-        </motion.h3>
+          dangerouslySetInnerHTML={{ __html: card.title }}
+        />
         <motion.p
-          className="font-['DM_Mono'] text-xs leading-relaxed opacity-80"
+          className="font-['DM_Mono'] text-base leading-relaxed opacity-80"
           variants={itemVariants}
-        >
-          {card.subtitle}
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: card.subtitle }}
+        />
       </motion.div>
 
       <motion.div
-        className="relative w-full h-28 my-4"
+        className="relative w-full h-28"
         initial={{ opacity: 0, scale: 0.9, filter: 'blur(6px)' }}
         whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         viewport={{ once: true, amount: 0.3 }}
@@ -710,37 +814,19 @@ function MobileCard({
         <div
           className="absolute inset-0 flex items-center justify-center"
           style={{
-            background: card.bgVariant === 'dark'
-              ? 'radial-gradient(circle at 50% 50%, rgba(129, 140, 248, 0.15) 0%, transparent 70%)'
-              : 'radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.08) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
           }}
         >
           <Image
             src={card.visual}
             alt={card.title}
-            width={120}
-            height={120}
-            className="pixelated opacity-90"
+            width={140}
+            height={140}
+            className="pixelated"
             style={{ imageRendering: 'pixelated' }}
           />
         </div>
       </motion.div>
-
-      <motion.a
-        href="#"
-        className={`
-          inline-flex items-center gap-2 font-['DM_Mono'] text-xs
-          underline underline-offset-4
-          ${card.bgVariant === 'dark' ? 'text-white' : 'text-brand'}
-        `}
-        initial={{ opacity: 0, x: -10 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.4, duration: 0.4 }}
-      >
-        {card.ctaText || 'Learn more'}
-        <span>→</span>
-      </motion.a>
     </motion.article>
   )
 }
