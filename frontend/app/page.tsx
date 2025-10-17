@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRef } from "react";
 import PixelClouds from "./components/PixelClouds";
 import PixelButton from "./components/PixelButton";
-import PhantomStyleCards from "../components/sections/PhantomStyleCards";
+import CardShowcase from "../components/sections/CardShowcase";
 
 export default function Home() {
   const imageRef = useRef<HTMLDivElement>(null);
@@ -57,7 +57,13 @@ export default function Home() {
               >
                 <PixelButton variant="primary">
                   Get Started
-                  <span className="inline-block ml-2">→</span>
+                  <Image
+                    src="/arrow-right.svg"
+                    alt="arrow"
+                    width={16}
+                    height={16}
+                    className="inline-block ml-2 brightness-0 invert"
+                  />
                 </PixelButton>
                 <PixelButton variant="secondary">
                   View Demo
@@ -121,8 +127,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Benefits Showcase - Phantom-style horizontal scroll */}
-      <PhantomStyleCards />
+      {/* Benefits Showcase - horizontal scroll */}
+      <CardShowcase />
     </main>
   );
 }
