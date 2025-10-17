@@ -1,0 +1,50 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Creators & Businesses bridge - pixel art style -->
+  <g style="image-rendering: pixelated;">
+    <!-- Bridge structure -->
+    <rect x="30" y="110" width="140" height="8" fill="#4F46E5"/>
+
+    <!-- Bridge pillars -->
+    <rect x="30" y="110" width="8" height="40" fill="#4F46E5"/>
+    <rect x="162" y="110" width="8" height="40" fill="#4F46E5"/>
+    <rect x="96" y="110" width="8" height="30" fill="#4F46E5" opacity="0.6"/>
+
+    <!-- Bridge cables (pixel style) -->
+    <line x1="34" y1="110" x2="100" y2="80" stroke="#818CF8" stroke-width="2"/>
+    <line x1="166" y1="110" x2="100" y2="80" stroke="#818CF8" stroke-width="2"/>
+    <line x1="50" y1="110" x2="100" y2="90" stroke="#818CF8" stroke-width="2" opacity="0.6"/>
+    <line x1="150" y1="110" x2="100" y2="90" stroke="#818CF8" stroke-width="2" opacity="0.6"/>
+
+    <!-- Left side: Creator (pixel person with palette) -->
+    <rect x="15" y="80" width="16" height="16" fill="#F2B94B"/>
+    <rect x="15" y="96" width="16" height="24" fill="#4F46E5"/>
+    <rect x="10" y="100" width="8" height="16" fill="#4F46E5"/>
+    <rect x="31" y="100" width="8" height="16" fill="#4F46E5"/>
+    <!-- Palette/brush -->
+    <circle cx="10" cy="75" r="6" fill="#818CF8"/>
+    <rect x="12" y="70" width="8" height="3" fill="#818CF8"/>
+
+    <!-- Right side: Business (pixel person with briefcase) -->
+    <rect x="169" y="80" width="16" height="16" fill="#F2B94B"/>
+    <rect x="169" y="96" width="16" height="24" fill="#111827"/>
+    <rect x="164" y="100" width="8" height="16" fill="#111827"/>
+    <rect x="185" y="100" width="8" height="16" fill="#111827"/>
+    <!-- Briefcase -->
+    <rect x="188" y="85" width="12" height="10" fill="#4F46E5"/>
+    <rect x="192" y="83" width="4" height="4" fill="#4F46E5"/>
+
+    <!-- Connection indicator (data flow) -->
+    <circle cx="100" cy="80" r="8" fill="#10B981">
+      <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="80" r="4" fill="white"/>
+
+    <!-- Bidirectional arrows -->
+    <polygon points="60,115 70,112 70,118" fill="#F2B94B"/>
+    <polygon points="140,115 130,112 130,118" fill="#F2B94B"/>
+
+    <!-- Base platforms -->
+    <rect x="5" y="150" width="40" height="6" fill="#818CF8" opacity="0.3"/>
+    <rect x="155" y="150" width="40" height="6" fill="#818CF8" opacity="0.3"/>
+  </g>
+</svg>

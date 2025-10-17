@@ -8,11 +8,55 @@ This is the frontend for **PattPay — The Future of Recurring Payments on Solan
 
 ### About PattPay
 
-PattPay is an on-chain subscription and recurring payment platform built on the Solana ecosystem. Our mission is to automate payments between individuals, creators, and Web3 businesses, eliminating intermediaries and reducing costs — all with blockchain transparency, speed, and security.
+PattPay is a Web3 payment gateway built natively on the Solana network, designed for subscriptions and recurring on-chain payments. It enables businesses, creators, and platforms to automate payment flows quickly, cheaply, and securely using programmable smart contracts.
 
-At PattPay, each transaction is a piece within an open and connected financial system, where smart contracts manage recurring flows, enabling new forms of monetization and engagement in the decentralized world.
+No banks, no intermediaries — just direct transactions between wallets.
 
-**Value Proposition:**
+#### How It Works
+
+With PattPay, setting up a recurring payment is as simple as authorizing a single transaction. After authorization, Solana smart contracts automatically execute transfers at defined intervals — whether monthly, weekly, or on-demand.
+
+This means:
+- **No billing backend needed**: Smart contracts handle everything
+- **No manual failure risk**: Automated execution removes human error
+- **No intermediary controlling funds**: Users maintain full wallet control
+
+Everything happens on-chain, with total transparency, auditability, and near-zero fees — leveraging Solana's unmatched performance.
+
+#### Why Solana
+
+The choice of Solana is strategic: with high speed (65,000 TPS) and transaction costs below one cent, it is the ideal infrastructure for automated and recurring payments at global scale.
+
+PattPay leverages the Solana ecosystem advantages to deliver:
+- **Instant payments** (<1 second)
+- **Extremely low costs** (fractions of a penny)
+- **Native integrations** with wallets like Phantom, Solflare, and Backpack
+- **On-chain stability and security** via auditable contracts
+
+#### Our Proposition
+
+> "PattPay is Solana's subscription gateway — simple, transparent, and automated."
+
+Instead of relying on centralized APIs like Stripe or PayPal, PattPay executes billing, collection, and settlement directly on the blockchain. It provides the foundation for any Web3 business — from SaaS to creative platforms — to charge and receive subscriptions automatically, with near-zero cost and total security.
+
+#### Transparency & Security
+
+Each payment is recorded and validated on-chain, which guarantees:
+- **Immutability**: Nothing can be changed after execution
+- **Autonomy**: Users maintain full control over their wallets
+- **Auditability**: All payment history is public and verifiable
+
+There are no intermediaries, custodians, or banks — just open-source code and audited smart contracts.
+
+#### The Vision
+
+PattPay is the infrastructure that brings the automated subscription model to the Web3 universe — a bridge between the traditional financial world and Solana's decentralized ecosystem.
+
+> "Set it once. Let the blockchain do the rest."
+
+Continuous, fast, reliable, and frictionless payments — this is the experience that defines PattPay.
+
+**Core Value Proposition:**
 - **Automatic on-chain payments**: Set it once, and the smart contract handles the rest
 - **Decentralized subscriptions**: No banks, no abusive fees, no blocking risk
 - **For Web3 creators and businesses**: Receive payments predictably, transparently, and globally
@@ -127,6 +171,119 @@ When building components:
 7. Use smooth micro-animations based on recurring loops (symbolizing automatic payments)
 8. Maintain minimalist, clean UI inspired by Phantom + Linear design philosophy
 9. Hero imagery should reflect "The Pixel Finance City" concept — isometric pixel art representing the DeFi ecosystem
+
+## Visual Style Guide — PattPay (Pixel Finance City)
+
+### Design Essence
+
+The PattPay visual style is modern pixel art with minimalist aesthetics — combining nostalgic 8-bit charm with a technological, smooth, and contemporary look. The goal is to convey innovation, accessibility, and trust, as if users are exploring a living, organized digital DeFi city.
+
+### Fundamental Principles
+
+| Element | Guideline |
+|---------|-----------|
+| Style | Modern isometric pixel art (30° angle) — clean geometry consistent with grid |
+| Theme | Futuristic technological city (DeFi City) with calm and connected feel |
+| Form | Simplified blocks and buildings, clean edges, volumes suggested with soft shadows |
+| Texture | Smooth and uniform — no dithering, no noise, no black outlines |
+| Lighting | Diffuse, soft (simulates overcast morning); emphasis by tone, not contrast |
+| Proportion | Small characters (1/3 of height = head), large structured buildings |
+| Atmosphere | Calm, technical and welcoming; should feel like a "living" and "organized" ecosystem |
+
+### Color Palette (Tailwind Tokens)
+
+| Usage | Color | Suggested Token |
+|-------|-------|-----------------|
+| Background | #F5F6F7 | bg-surface |
+| Internal surfaces | #FAFAFB | bg-base |
+| Main text / Details | #111827 | text-fg |
+| Primary (brand) | #4F46E5 | brand |
+| Secondary (highlight) | #818CF8 | brand-300 |
+| Accent / Coins / Lights | #F2B94B | accent |
+| Soft gradients | linear(from-[#F5F6F7], to-[#E8E9FB]) | bg-gradient-to-b from-bg to-surface |
+
+**Notes:**
+- Prefer cool lavender tones with low saturation
+- Avoid extreme contrasts
+- Background should always feel ethereal and illuminated, never opaque
+
+### Visual Components
+
+#### Buildings & Structures
+- Isometric blocks with light bevels and solid base
+- Use two tone bands (main and shadow)
+- No black outlines — delimitation by tonal contrast
+- Bottom-side shading with #4F46E5 → #818CF8
+
+#### Characters
+- Small body (3:1 head/body ratio)
+- Soft colors, always within palette (blueish and lilac clothing)
+- Common actions: typing, watching screen, connecting cables
+- Use `image-rendering: pixelated` to maintain visual fidelity
+
+#### Icons & System Elements
+- Created in vectorized or 1x raster pixel art
+- Standard icons: ⚙️ gear, 🔗 bridge, 💡 bulb, 🔒 lock
+- Colors:
+  - Connection lines → translucent white (rgba(255,255,255,0.5))
+  - Coins / value flow → golden #F2B94B
+  - Technical background → lavender #E0E3FF
+
+#### Backgrounds & Layers
+Use soft layers for depth:
+- Top layer: light tones (#FAFAFB)
+- Middle layer: medium lavender (#E0E3FF)
+- Bottom layer: cool blue (#C7CBF7)
+- Light vignette at edges (`box-shadow: inset 0 0 80px rgba(0,0,0,0.05)`)
+
+### Frontend Guidelines (Tailwind + React)
+
+```js
+/* tailwind.config.js — main tokens */
+theme: {
+  extend: {
+    colors: {
+      bg: "#F5F6F7",
+      surface: "#FAFAFB",
+      fg: "#111827",
+      brand: "#4F46E5",
+      "brand-300": "#818CF8",
+      accent: "#F2B94B",
+    },
+    fontFamily: {
+      display: ['"Press Start 2P"', 'monospace'],
+      sans: ['"DM Mono"', 'monospace'],
+    },
+    imageRendering: {
+      pixelated: 'pixelated',
+    },
+  },
+}
+
+/* example for displaying pixel art images */
+<img
+  src="/assets/pixel/building.png"
+  className="w-64 image-pixelated drop-shadow-[0_2px_0_#818CF8]"
+  style={{ imageRendering: 'pixelated' }}
+/>
+```
+
+### Recommended Micro-interactions
+
+| Interaction | Description | Implementation |
+|-------------|-------------|----------------|
+| Hover pixel bounce | Characters or buildings "pulse" 1px on mouse hover | `hover:translate-y-[-1px] transition-all` |
+| Flow animation | Transaction lines blink in sequence (infinite loop) | `animate-[flow_2s_linear_infinite]` |
+| Glint effect | Light sweeping main building (dynamic relief) | `mask-image: linear-gradient() + CSS keyframe` |
+| Scroll fade | Hero → "Layers" section smoothly decreases background tone | `bg-gradient-to-b with Tailwind animation` |
+
+### Quick Summary for Developers
+
+- Use isometry, cool colors, pixelated grid
+- Always `image-rendering: pixelated`
+- No hard shadows, black outlines or dithering
+- Think of vertical movement as narrative (city "grows" upward and "deepens" downward)
+- Use reusable components (`<PixelBuilding />`, `<PixelCharacter />`, `<PixelIcon />`) for modularity
 
 ### Turbopack
 Both dev and build scripts use the `--turbopack` flag. This is the faster Rust-based bundler replacing Webpack in Next.js.
