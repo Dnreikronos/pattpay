@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useRef } from "react";
 import PixelClouds from "./components/PixelClouds";
 import PixelButton from "./components/PixelButton";
-import CardShowcase from "../components/sections/CardShowcase";
-import FAQ from "../components/sections/FAQ";
+import CardShowcase from "@/components/sections/CardShowcase";
+import FAQ from "@/components/sections/FAQ";
 
 export default function Home() {
   const imageRef = useRef<HTMLDivElement>(null);
