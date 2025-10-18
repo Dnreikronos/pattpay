@@ -330,7 +330,7 @@ export default function FAQ() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <PixelButton variant="primary" className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6">
-            Acessar a Plataforma
+            Access Platform
             <Image
               src="/arrow-right.svg"
               alt="arrow"
