@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 import PixelClouds from "./components/PixelClouds";
 import PixelButton from "./components/PixelButton";
@@ -56,16 +57,18 @@ export default function Home() {
                 transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
                 className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6"
               >
-                <PixelButton variant="primary">
-                  Get Started
-                  <Image
-                    src="/arrow-right.svg"
-                    alt="arrow"
-                    width={16}
-                    height={16}
-                    className="inline-block ml-2 brightness-0 invert"
-                  />
-                </PixelButton>
+                <Link href="/dashboard">
+                  <PixelButton variant="primary">
+                    Get Started
+                    <Image
+                      src="/arrow-right.svg"
+                      alt="arrow"
+                      width={16}
+                      height={16}
+                      className="inline-block ml-2 brightness-0 invert"
+                    />
+                  </PixelButton>
+                </Link>
                 <PixelButton variant="secondary">
                   View Demo
                 </PixelButton>

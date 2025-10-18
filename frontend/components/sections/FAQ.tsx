@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import PixelClouds from '../../app/components/PixelClouds'
 import PixelButton from '../../app/components/PixelButton'
 import Image from 'next/image'
+import Link from 'next/link'
 
 interface FAQItem {
   id: string
@@ -329,16 +330,18 @@ export default function FAQ() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <PixelButton variant="primary" className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6">
-            Access Platform
-            <Image
-              src="/arrow-right.svg"
-              alt="arrow"
-              width={20}
-              height={20}
-              className="inline-block ml-3 brightness-0 invert"
-            />
-          </PixelButton>
+          <Link href="/dashboard">
+            <PixelButton variant="primary" className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6">
+              Access Platform
+              <Image
+                src="/arrow-right.svg"
+                alt="arrow"
+                width={20}
+                height={20}
+                className="inline-block ml-3 brightness-0 invert"
+              />
+            </PixelButton>
+          </Link>
         </motion.div>
       </div>
     </section>
