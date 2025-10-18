@@ -6,6 +6,7 @@ import { useRef } from "react";
 import PixelClouds from "./components/PixelClouds";
 import PixelButton from "./components/PixelButton";
 import CardShowcase from "../components/sections/CardShowcase";
+import FAQ from "../components/sections/FAQ";
 
 export default function Home() {
   const imageRef = useRef<HTMLDivElement>(null);
@@ -127,8 +128,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Benefits Showcase - horizontal scroll */}
       <CardShowcase />
+
+      <FAQ />
     </main>
   );
 }
