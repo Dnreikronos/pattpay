@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import PixelClouds from '../../app/components/PixelClouds'
-import PixelButton from '../../app/components/PixelButton'
+import PixelClouds from '@/app/(home)/components/PixelClouds'
+import PixelButton from '@/app/(home)/components/PixelButton'
 import Image from 'next/image'
 import Link from 'next/link'
 
