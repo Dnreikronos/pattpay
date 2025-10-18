@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
@@ -31,7 +30,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dmMono.variable} ${pressStart.variable} antialiased`}>
-        <Navbar />
         {children}
       </body>
     </html>
