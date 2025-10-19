@@ -8,7 +8,6 @@ import {
   ChevronsUpDown,
   LayoutDashboard,
   LogOut,
-  Plus,
   Settings,
   UserCircle,
   Wallet,
@@ -65,7 +64,7 @@ const variants = {
 
 const transitionProps = {
   type: "tween" as const,
-  ease: "easeOut",
+  ease: "easeOut" as const,
   duration: 0.2,
   staggerChildren: 0.1,
 };
