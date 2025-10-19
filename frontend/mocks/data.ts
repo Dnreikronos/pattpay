@@ -1,6 +1,7 @@
 // Mock data for PattPay Dashboard API
 
 import type { TransactionChartData, MRRChartData } from '@/types/chart'
+import type { Payment, PaymentStats } from '@/types/payment'
 
 // Generate last 7 days of transaction data
 export const mockTransactionChartData: TransactionChartData[] = Array.from({ length: 7 }, (_, i) => {
@@ -262,3 +263,60 @@ export const mockActivity = Array.from({ length: 30 }, (_, i) => ({
   volume: Math.random() * 200 + 50,
   count: Math.floor(Math.random() * 50 + 10)
 }))
+
+// Mock Payments Data
+const generateRandomHash = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  return Array.from({ length: 44 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+}
+
+const generateWalletAddress = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz123456789'
+  const start = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  const end = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  return `${start}...${end}`
+}
+
+export const mockPayments: Payment[] = Array.from({ length: 50 }, (_, i) => {
+  const status: Payment['status'] =
+    i % 10 === 0 ? 'failed' :
+    i % 7 === 0 ? 'pending' :
+    'success'
+
+  const hoursAgo = i * 2 + Math.floor(Math.random() * 3)
+  const createdAt = new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
+  const confirmedAt = status === 'success' ? new Date(createdAt.getTime() + 2000) : undefined
+
+  const amount = parseFloat((Math.random() * 20 + 1).toFixed(2))
+  const solToUSD = 100
+  const amountUSD = parseFloat((amount * solToUSD).toFixed(2))
+
+  const links = ['Pro Subscription', 'Monthly Donation', 'Annual Plan', 'Basic Tier', 'Premium Access']
+  const hasLink = i % 3 !== 0
+
+  return {
+    id: `pay_${i + 1}`,
+    hash: generateRandomHash(),
+    amount,
+    amountUSD,
+    status,
+    from: generateWalletAddress(),
+    to: generateWalletAddress(),
+    linkId: hasLink ? `link_${(i % 5) + 1}` : undefined,
+    linkName: hasLink ? links[i % 5] : undefined,
+    block: 123456789 - i,
+    confirmations: status === 'success' ? Math.floor(Math.random() * 50 + 20) : status === 'pending' ? Math.floor(Math.random() * 15) : 0,
+    fee: 0.000005,
+    createdAt: createdAt.toISOString(),
+    confirmedAt: confirmedAt?.toISOString()
+  }
+})
+
+// Mock Payment Stats
+export const mockPaymentStats: PaymentStats = {
+  totalToday: 24,
+  volumeToday: 187.5,
+  volumeTodayUSD: 18750,
+  averageTicket: 781.25, // $18,750 / 24 payments
+  averageTicketTrend: 5.2 // +5.2% vs yesterday
+}
