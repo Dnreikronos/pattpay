@@ -7,8 +7,6 @@ import {
   LayoutDashboard,
   Wallet,
   CreditCard,
-  History,
-  Bell,
   HelpCircle,
   Link2,
 } from "lucide-react";
@@ -48,7 +46,7 @@ export function Sidebar() {
                       href="/dashboard"
                       className={cn(
                         "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("dashboard") &&
+                        pathname === "/dashboard" &&
                           "bg-brand/10 text-brand"
                       )}
                     >
@@ -59,24 +57,10 @@ export function Sidebar() {
                     </Link>
 
                     <Link
-                      href="/subscriptions"
+                      href="/dashboard/payments"
                       className={cn(
                         "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("subscriptions") &&
-                          "bg-brand/10 text-brand"
-                      )}
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      <p className="text-sm font-medium font-sans">
-                        Subscriptions
-                      </p>
-                    </Link>
-
-                    <Link
-                      href="/payments"
-                      className={cn(
-                        "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("payments") &&
+                        pathname?.includes("/dashboard/payments") &&
                           "bg-brand/10 text-brand"
                       )}
                     >
@@ -97,59 +81,46 @@ export function Sidebar() {
                     </Link>
 
                     <Link
-                      href="/history"
+                      href="/dashboard/subscriptions"
                       className={cn(
                         "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("history") &&
+                        pathname?.includes("/dashboard/subscriptions") &&
                           "bg-brand/10 text-brand"
                       )}
                     >
-                      <History className="h-4 w-4" />
+                      <CreditCard className="h-4 w-4" />
                       <p className="text-sm font-medium font-sans">
-                        History
+                        Subscriptions
                       </p>
                     </Link>
 
                     <Link
-                      href="/links"
+                      href="/dashboard/links"
                       className={cn(
                         "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("links") &&
+                        pathname?.includes("/dashboard/links") &&
                           "bg-brand/10 text-brand"
                       )}
                     >
                       <Link2 className="h-4 w-4" />
                       <p className="text-sm font-medium font-sans">
-                        Links
+                        Payment Links
                       </p>
                     </Link>
 
                     <Separator className="w-full my-2" />
 
                     <Link
-                      href="/notifications"
+                      href="/dashboard/settings"
                       className={cn(
                         "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("notifications") &&
+                        pathname?.includes("/dashboard/settings") &&
                           "bg-brand/10 text-brand"
-                      )}
-                    >
-                      <Bell className="h-4 w-4" />
-                      <p className="text-sm font-medium font-sans">
-                        Notifications
-                      </p>
-                    </Link>
-
-                    <Link
-                      href="/help"
-                      className={cn(
-                        "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("help") && "bg-brand/10 text-brand"
                       )}
                     >
                       <HelpCircle className="h-4 w-4" />
                       <p className="text-sm font-medium font-sans">
-                        Help
+                        Settings
                       </p>
                     </Link>
                   </div>
