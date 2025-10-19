@@ -1,14 +1,22 @@
 'use client'
 
-import { useState } from "react";
 import { StatCard } from "./_components/StatCard";
 import { TransactionsChart } from "./_components/TransactionsChart";
 import { MRRChart } from "./_components/MRRChart";
+import { FilterButton } from "./_components/FilterButton";
 import { useChartData } from "@/lib/hooks/useChartData";
+import { useFilterStore } from "@/lib/stores/filter-store";
 import type { ChartPeriod } from "@/types/chart";
+import { motion } from "framer-motion";
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<ChartPeriod>('7d')
+  const { dateFilter } = useFilterStore();
+
+  // Map filter preset to chart period
+  const period: ChartPeriod =
+    dateFilter.preset === 'last-7-days' ? '7d' :
+    dateFilter.preset === 'last-90-days' ? '90d' : '30d';
+
   const { transactions, mrr, loading, error } = useChartData(period)
 
   return (
@@ -41,28 +49,8 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Period Toggle */}
-      <div className="flex items-center gap-3">
-        <span className="font-mono text-sm text-muted">Period:</span>
-        <div className="flex gap-2">
-          {(['7d', '30d', '90d'] as ChartPeriod[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`
-                px-4 py-2 font-mono text-xs border-2 transition-all
-                ${
-                  period === p
-                    ? 'bg-brand text-surface border-brand shadow-[2px_2px_0_0_rgba(79,70,229,1)]'
-                    : 'bg-surface text-fg border-border hover:border-brand-300 hover:-translate-y-[2px]'
-                }
-              `}
-            >
-              {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : '90 dias'}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Filter System */}
+      <FilterButton />
 
       {/* Error State */}
       {error && (
@@ -72,10 +60,14 @@ export default function DashboardPage() {
       )}
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <motion.div
+        className="grid grid-cols-1 gap-6 lg:grid-cols-2"
+        layout
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <TransactionsChart data={transactions} loading={loading} />
         <MRRChart data={mrr} loading={loading} />
-      </div>
+      </motion.div>
     </div>
   );
 }
