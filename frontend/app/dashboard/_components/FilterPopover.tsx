@@ -202,8 +202,7 @@ export function FilterPopover() {
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
-          className="gap-2 border-2 border-border bg-white font-mono text-xs shadow-sm transition-all hover:border-brand/30 hover:bg-white hover:shadow cursor-pointer"
+          className="h-10 gap-2 border-2 border-border bg-white font-mono text-sm shadow-sm transition-all hover:border-brand/30 hover:bg-white hover:shadow cursor-pointer px-4"
         >
           <SlidersHorizontal className="h-4 w-4" />
           <span>Filters</span>
