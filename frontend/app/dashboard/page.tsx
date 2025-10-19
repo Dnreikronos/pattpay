@@ -25,6 +25,9 @@ export default function DashboardPage() {
         <h1 className="text-foreground" style={{ fontFamily: "var(--font-press-start)", fontWeight: 400, fontSize: "2.5rem" }}>
           Dashboard
         </h1>
+        <p className="font-mono text-muted text-sm">
+          Overview of your payment activity and key metrics
+        </p>
       </div>
 
       {/* Stats Cards */}
