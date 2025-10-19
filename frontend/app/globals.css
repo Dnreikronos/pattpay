@@ -197,6 +197,14 @@ small {
 }
 
 .dark {
+  /* Custom theme tokens for dark mode */
+  --bg: #1a1a1a;
+  --surface: #262626;
+  --fg: #f5f5f5;
+  --fg-muted: #a3a3a3;
+  --border: oklch(1 0 0 / 10%);
+
+  /* Shadcn tokens */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -212,7 +220,6 @@ small {
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
@@ -258,4 +265,20 @@ small {
   50% {
     transform: translateX(6px);
   }
+}
+
+/* Theme transition animation using View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Always show the new theme on top with the circular reveal */
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
 }
