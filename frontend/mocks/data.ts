@@ -3,6 +3,7 @@
 import type { TransactionChartData, MRRChartData } from '@/types/chart'
 import type { Payment, PaymentStats } from '@/types/payment'
 import type { CheckoutLink, LinkStats } from '@/types/link'
+import type { Subscription, SubscriptionStats } from '@/types/subscription'
 
 // Generate last 7 days of transaction data
 export const mockTransactionChartData: TransactionChartData[] = Array.from({ length: 7 }, (_, i) => {
@@ -553,4 +554,96 @@ export const mockLinkStats: LinkStats = {
   averageConversion: 21.8, // Average conversion rate across all links
   totalRevenue: mockCheckoutLinks.reduce((sum, link) => sum + (link.amount * link.totalPayments), 0),
   totalRevenueUSD: mockCheckoutLinks.reduce((sum, link) => sum + (link.amountUSD * link.totalPayments), 0)
+}
+
+// Helper function to generate payer names
+const generatePayerName = () => {
+  const firstNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack']
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez']
+  return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`
+}
+
+// Mock Subscriptions
+export const mockSubscriptions: Subscription[] = Array.from({ length: 45 }, (_, i) => {
+  const status: Subscription['status'] =
+    i % 12 === 0 ? 'cancelled' :
+    i % 15 === 0 ? 'expired' :
+    'active'
+
+  const daysAgo = i * 7 + Math.floor(Math.random() * 7)
+  const createdAt = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
+
+  // Last payment was between 1-30 days ago for active, longer for others
+  const lastPaidDaysAgo = status === 'active'
+    ? Math.floor(Math.random() * 30)
+    : 30 + Math.floor(Math.random() * 60)
+  const lastPaidAt = new Date(Date.now() - lastPaidDaysAgo * 24 * 60 * 60 * 1000)
+
+  // Next payment is in the future for active, in the past for others
+  const nextDueDaysOffset = status === 'active'
+    ? Math.floor(Math.random() * 30) + 1 // 1-30 days in future
+    : -(Math.floor(Math.random() * 30) + 1) // 1-30 days in past
+  const nextDueAt = new Date(Date.now() + nextDueDaysOffset * 24 * 60 * 60 * 1000)
+
+  const plans = [
+    { name: 'Pro Plan', description: 'Full access to all premium features', duration: 12, period: 2592000 }, // 30 days
+    { name: 'Basic Plan', description: 'Essential features for starters', duration: 12, period: 2592000 },
+    { name: 'Enterprise Plan', description: 'Unlimited access with priority support', duration: 12, period: 2592000 },
+    { name: 'Student Plan', description: 'Discounted plan for students', duration: 6, period: 2592000 },
+    { name: 'Annual Premium', description: 'Premium features billed yearly', duration: 12, period: 31536000 }, // 365 days
+  ]
+  const plan = plans[i % plans.length]
+
+  const tokens = [
+    { mint: 'USDT', decimals: 6 },
+    { mint: 'USDC', decimals: 6 },
+  ]
+  const token = tokens[i % tokens.length]
+
+  const amount = parseFloat((Math.random() * 50 + 10).toFixed(2))
+  const solToUSD = 100
+  const amountUSD = parseFloat((amount * solToUSD).toFixed(2))
+  const totalApproved = amount * plan.duration
+
+  return {
+    id: `sub_${i + 1}`,
+    planId: `plan_${(i % 5) + 1}`,
+    payerId: `payer_${i + 1}`,
+    payerName: generatePayerName(),
+    payerWallet: generateWalletAddress(),
+    planName: plan.name,
+    planDescription: plan.description,
+    tokenMint: token.mint,
+    tokenDecimals: token.decimals,
+    amount,
+    amountUSD,
+    status,
+    nextDueAt: nextDueAt.toISOString(),
+    lastPaidAt: lastPaidAt.toISOString(),
+    totalApprovedAmount: totalApproved,
+    durationMonths: plan.duration,
+    periodSeconds: plan.period,
+    createdAt: createdAt.toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+})
+
+// Mock Subscription Stats
+export const mockSubscriptionStats: SubscriptionStats = {
+  activeSubscriptions: mockSubscriptions.filter(s => s.status === 'active').length,
+  mrr: mockSubscriptions
+    .filter(s => s.status === 'active')
+    .reduce((sum, s) => sum + s.amount, 0),
+  mrrUSD: mockSubscriptions
+    .filter(s => s.status === 'active')
+    .reduce((sum, s) => sum + s.amountUSD, 0),
+  arr: mockSubscriptions
+    .filter(s => s.status === 'active')
+    .reduce((sum, s) => sum + s.amount, 0) * 12, // MRR * 12
+  arrUSD: mockSubscriptions
+    .filter(s => s.status === 'active')
+    .reduce((sum, s) => sum + s.amountUSD, 0) * 12, // MRR * 12 in USD
+  arrTrend: 12.5, // +12.5% ARR growth
+  newSubscriptions: 8, // New subscriptions this month
+  cancelledSubscriptions: 3 // Cancelled this month
 }
