@@ -122,7 +122,7 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
             >
               <Badge
                 variant="secondary"
-                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-card px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
               >
                 <SearchIcon className="h-3 w-3" />
                 <span>{filters.search}</span>
@@ -148,7 +148,7 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
             >
               <Badge
                 variant="secondary"
-                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-card px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
               >
                 <Calendar className="h-3 w-3" />
                 <span>{dateLabels[filters.datePreset]}</span>
@@ -174,7 +174,7 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
             >
               <Badge
                 variant="secondary"
-                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-card px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
               >
                 <Coins className="h-3 w-3" />
                 <span>{tokenLabels[filters.tokenMint] || filters.tokenMint}</span>
@@ -200,7 +200,7 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
             >
               <Badge
                 variant="secondary"
-                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-card px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
               >
                 {statusIcons[status]}
                 <span className="capitalize">{status}</span>
@@ -522,18 +522,18 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
       <div className="flex items-center gap-3">
         {/* Search Bar */}
         <div className="relative flex-1 max-w-md group">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted transition-colors group-hover:text-brand" />
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-brand" />
           <input
             type="text"
             placeholder="Search by payer name, wallet or plan..."
             value={filters.search || ''}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="flex h-10 w-full rounded-md border-2 border-brand bg-background px-3 py-2 pl-10 pr-8 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand focus-visible:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] hover:shadow-sm hover:bg-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-full rounded-md border-2 border-brand bg-background px-3 py-2 pl-10 pr-8 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand focus-visible:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] hover:shadow-sm hover:bg-card transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
           />
           {filters.search && (
             <button
               onClick={clearSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -545,7 +545,7 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="h-10 gap-2 border-2 border-border bg-white font-mono text-sm shadow-sm transition-all hover:border-brand/30 hover:bg-white hover:shadow cursor-pointer px-4"
+              className="h-10 gap-2 border-2 border-border bg-card font-mono text-sm shadow-sm transition-all hover:border-brand/30 hover:bg-card hover:shadow cursor-pointer px-4"
             >
               <SlidersHorizontal className="h-4 w-4" />
               <span>Filters</span>

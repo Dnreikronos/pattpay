@@ -72,7 +72,7 @@ function FilterChip({ label, icon, onRemove }: FilterChipProps) {
     >
       <Badge
         variant="secondary"
-        className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+        className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-card px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
       >
         {icon && <span className="flex items-center">{icon}</span>}
         <span>{label}</span>

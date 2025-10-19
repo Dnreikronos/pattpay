@@ -32,7 +32,7 @@ export function Pagination({
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
       {/* Items count */}
-      <div className="font-mono text-sm text-muted">
+      <div className="font-mono text-sm text-muted-foreground">
         {totalItems ? (
           <>
             Showing <span className="text-foreground font-bold">{startItem}-{endItem}</span> of{' '}
@@ -47,7 +47,7 @@ export function Pagination({
       <div className="flex items-center gap-4">
         {/* Items per page */}
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-muted">Per page:</span>
+          <span className="font-mono text-sm text-muted-foreground">Per page:</span>
           <select
             value={perPage}
             onChange={(e) => onPerPageChange(Number(e.target.value))}
@@ -69,7 +69,7 @@ export function Pagination({
             className={`
               p-2 border-2 transition-all font-mono
               ${currentPage === 1
-                ? 'border-border bg-surface text-muted cursor-not-allowed'
+                ? 'border-border bg-surface text-muted-foreground cursor-not-allowed'
                 : 'border-brand bg-surface text-brand hover:bg-brand hover:text-surface'
               }
             `}
@@ -102,7 +102,7 @@ export function Pagination({
             className={`
               p-2 border-2 transition-all font-mono
               ${currentPage === totalPages
-                ? 'border-border bg-surface text-muted cursor-not-allowed'
+                ? 'border-border bg-surface text-muted-foreground cursor-not-allowed'
                 : 'border-brand bg-surface text-brand hover:bg-brand hover:text-surface'
               }
             `}

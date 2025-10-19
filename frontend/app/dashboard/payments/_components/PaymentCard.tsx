@@ -40,7 +40,7 @@ export function PaymentCard({ payment, onClick }: PaymentCardProps) {
   return (
     <div
       onClick={onClick}
-      className="border border-border bg-white rounded-xl p-4 hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-sm"
+      className="border border-border bg-card rounded-xl p-4 hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-sm"
     >
       {/* Top Row - Avatar, Status and Amount */}
       <div className="flex items-start justify-between mb-3">
@@ -54,14 +54,14 @@ export function PaymentCard({ payment, onClick }: PaymentCardProps) {
           <div className="font-mono font-bold text-foreground text-lg">
             ${payment.amountUSD.toFixed(2)}
           </div>
-          <div className="font-mono text-muted text-xs">
+          <div className="font-mono text-muted-foreground text-xs">
             ~{payment.amount.toFixed(2)} SOL
           </div>
         </div>
       </div>
 
       {/* Date */}
-      <div className="font-mono text-sm text-muted mb-3">
+      <div className="font-mono text-sm text-muted-foreground mb-3">
         {formatDistanceToNow(new Date(payment.createdAt), { addSuffix: true })}
       </div>
 
@@ -72,7 +72,7 @@ export function PaymentCard({ payment, onClick }: PaymentCardProps) {
         </span>
         <button
           onClick={handleCopy}
-          className="text-muted hover:text-brand transition-colors duration-200"
+          className="text-muted-foreground hover:text-brand transition-colors duration-200"
           title="Copy full hash"
         >
           {copiedHash ? (

@@ -43,7 +43,7 @@ export function SubscriptionCard({ subscription, onClick }: SubscriptionCardProp
   return (
     <div
       onClick={onClick}
-      className="border border-border bg-white rounded-xl p-4 hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-sm"
+      className="border border-border bg-card rounded-xl p-4 hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-pointer shadow-sm"
     >
       {/* Top Row - Avatar, Status and Amount */}
       <div className="flex items-start justify-between mb-3">
@@ -60,7 +60,7 @@ export function SubscriptionCard({ subscription, onClick }: SubscriptionCardProp
           <div className="font-mono font-bold text-foreground text-lg">
             ${subscription.amountUSD.toFixed(2)}
           </div>
-          <div className="font-mono text-muted text-xs">
+          <div className="font-mono text-muted-foreground text-xs">
             {subscription.amount.toFixed(2)} {subscription.tokenMint}
           </div>
         </div>
@@ -89,7 +89,7 @@ export function SubscriptionCard({ subscription, onClick }: SubscriptionCardProp
           <span className="font-mono text-xs text-foreground">{subscription.payerWallet}</span>
           <button
             onClick={handleCopy}
-            className="text-muted hover:text-brand transition-colors duration-200"
+            className="text-muted-foreground hover:text-brand transition-colors duration-200"
             title="Copy wallet address"
           >
             {copiedWallet ? (

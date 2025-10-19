@@ -62,7 +62,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="opacity-0 group-hover:opacity-100 text-muted hover:text-brand transition-all duration-200"
+      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-brand transition-all duration-200"
       title="Copy"
     >
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -116,7 +116,7 @@ function LinkActions({ link }: { link: CheckoutLink }) {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[200px] rounded-xl border border-border bg-white p-1 shadow-lg"
+        className="w-[200px] rounded-xl border border-border bg-card p-1 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-0.5">
@@ -209,7 +209,7 @@ export function LinkTable({
             {row.getValue('name')}
           </span>
           {row.original.description && (
-            <span className="text-muted text-xs font-mono mt-0.5 line-clamp-1">
+            <span className="text-muted-foreground text-xs font-mono mt-0.5 line-clamp-1">
               {row.original.description}
             </span>
           )}
@@ -236,7 +236,7 @@ export function LinkTable({
             <span className="text-foreground font-mono font-bold">
               ${link.amountUSD.toFixed(2)}
             </span>
-            <span className="text-muted font-mono text-xs">
+            <span className="text-muted-foreground font-mono text-xs">
               ~{link.amount.toFixed(2)} SOL
             </span>
           </div>
@@ -277,7 +277,7 @@ export function LinkTable({
             <CopyButton text={redirectUrl} />
           </div>
         ) : (
-          <span className="text-muted italic font-mono text-sm">None</span>
+          <span className="text-muted-foreground italic font-mono text-sm">None</span>
         )
       },
     },
@@ -350,7 +350,7 @@ export function LinkTable({
         {/* Mobile Skeleton */}
         <div className="md:hidden grid grid-cols-1 gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="border border-border bg-white rounded-xl p-4 shadow-sm animate-pulse">
+            <div key={i} className="border border-border bg-card rounded-xl p-4 shadow-sm animate-pulse">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-muted/20" />
@@ -370,7 +370,7 @@ export function LinkTable({
         </div>
 
         {/* Desktop Skeleton */}
-        <div className="hidden md:block w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+        <div className="hidden md:block w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
           <Table>
             <TableHeader className="bg-muted/30 border-b border-border">
               <TableRow className="hover:bg-transparent">
@@ -430,10 +430,10 @@ export function LinkTable({
 
   if (links.length === 0) {
     return (
-      <div className="w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <div className="p-12 text-center">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted/20 mb-4">
-            <LinkIcon className="h-8 w-8 text-muted" />
+            <LinkIcon className="h-8 w-8 text-muted-foreground" />
           </div>
           <p className="font-mono text-base font-medium text-foreground mb-2">No payment links found</p>
           <p className="font-mono text-sm text-muted-foreground">
@@ -468,7 +468,7 @@ export function LinkTable({
       </div>
 
       {/* Desktop View - Table */}
-      <div className="hidden md:block w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="hidden md:block w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/30 border-b border-border">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -489,7 +489,7 @@ export function LinkTable({
                 <motion.tr
                   key={row.id}
                   onClick={() => onRowClick?.(row.original.id)}
-                  className="group relative bg-white border-b border-border/50 cursor-pointer align-middle transition-all duration-200 ease-out hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 hover:z-10"
+                  className="group relative bg-card border-b border-border/50 cursor-pointer align-middle transition-all duration-200 ease-out hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 hover:z-10"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{

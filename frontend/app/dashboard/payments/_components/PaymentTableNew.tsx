@@ -66,7 +66,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="opacity-0 group-hover:opacity-100 text-muted hover:text-brand transition-all duration-200"
+      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-brand transition-all duration-200"
       title="Copy"
     >
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -113,7 +113,7 @@ function PaymentActions({ payment }: { payment: Payment }) {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[200px] rounded-xl border border-border bg-white p-1 shadow-lg"
+        className="w-[200px] rounded-xl border border-border bg-card p-1 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-0.5">
@@ -238,7 +238,7 @@ export function PaymentTableNew({
             <span className="text-foreground font-mono font-bold">
               ${payment.amountUSD.toFixed(2)}
             </span>
-            <span className="text-muted font-mono text-xs">
+            <span className="text-muted-foreground font-mono text-xs">
               ~{payment.amount.toFixed(2)} SOL
             </span>
           </div>
@@ -271,7 +271,7 @@ export function PaymentTableNew({
         const linkName = row.getValue('linkName') as string | undefined
         return (
           <span className="font-mono text-foreground">
-            {linkName || <span className="text-muted italic">Direct</span>}
+            {linkName || <span className="text-muted-foreground italic">Direct</span>}
           </span>
         )
       },
@@ -307,7 +307,7 @@ export function PaymentTableNew({
         {/* Mobile Skeleton */}
         <div className="md:hidden grid grid-cols-1 gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="border border-border bg-white rounded-xl p-4 shadow-sm animate-pulse">
+            <div key={i} className="border border-border bg-card rounded-xl p-4 shadow-sm animate-pulse">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-muted/20" />
@@ -332,7 +332,7 @@ export function PaymentTableNew({
         </div>
 
         {/* Desktop Skeleton */}
-        <div className="hidden md:block w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+        <div className="hidden md:block w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
           <Table>
             {/* Skeleton Header */}
             <TableHeader className="bg-muted/30 border-b border-border">
@@ -412,10 +412,10 @@ export function PaymentTableNew({
 
   if (payments.length === 0) {
     return (
-      <div className="w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <div className="p-12 text-center">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted/20 mb-4">
-            <svg className="h-8 w-8 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
           </div>
@@ -452,7 +452,7 @@ export function PaymentTableNew({
       </div>
 
       {/* Desktop View - Table */}
-      <div className="hidden md:block w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="hidden md:block w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/30 border-b border-border">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -473,7 +473,7 @@ export function PaymentTableNew({
                 <motion.tr
                   key={row.id}
                   onClick={() => onRowClick?.(row.original.id)}
-                  className="group relative bg-white border-b border-border/50 cursor-pointer align-middle transition-all duration-200 ease-out hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 hover:z-10"
+                  className="group relative bg-card border-b border-border/50 cursor-pointer align-middle transition-all duration-200 ease-out hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 hover:z-10"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{

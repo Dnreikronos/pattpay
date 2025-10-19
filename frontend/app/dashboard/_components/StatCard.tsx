@@ -10,7 +10,7 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, accentColor }: StatCardProps) {
   return (
     <div
-      className="relative bg-surface border-4 p-6 transition-all duration-300 hover:-translate-y-1"
+      className="relative bg-surface dark:bg-card border-4 p-6 transition-all duration-300 hover:-translate-y-1"
       style={{
         borderColor: accentColor,
         boxShadow: `6px 6px 0 0 ${accentColor}33`,
@@ -57,7 +57,7 @@ export function StatCard({ title, value, icon, accentColor }: StatCardProps) {
       <div className="relative flex items-center justify-between gap-4">
         {/* Left side - Text content */}
         <div className="flex flex-col gap-3 flex-1 min-w-0">
-          <h3 className="text-lg md:text-xl font-sans font-bold text-fg">{title}</h3>
+          <h3 className="text-lg md:text-xl font-sans font-bold text-foreground">{title}</h3>
           <p
             className="text-5xl md:text-6xl font-display font-bold leading-none"
             style={{ color: accentColor }}

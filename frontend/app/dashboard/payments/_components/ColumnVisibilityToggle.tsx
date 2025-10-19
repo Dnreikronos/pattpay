@@ -24,7 +24,7 @@ export function ColumnVisibilityToggle({ columns, onToggle, onReset }: ColumnVis
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className="flex h-10 items-center gap-2 rounded-md border-2 border-border bg-white px-4 font-mono text-sm font-medium shadow-sm transition-all hover:border-brand/30 hover:bg-brand/5 cursor-pointer"
+          className="flex h-10 items-center gap-2 rounded-md border-2 border-border bg-card px-4 font-mono text-sm font-medium shadow-sm transition-all hover:border-brand/30 hover:bg-brand/5 cursor-pointer"
         >
           <Columns3 className="h-4 w-4" />
           Columns
@@ -32,7 +32,7 @@ export function ColumnVisibilityToggle({ columns, onToggle, onReset }: ColumnVis
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[240px] rounded-2xl border-2 border-border bg-white p-0 shadow-lg"
+        className="w-[240px] rounded-2xl border-2 border-border bg-card p-0 shadow-lg"
       >
         <div className="flex flex-col">
           {/* Header */}

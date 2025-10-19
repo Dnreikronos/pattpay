@@ -80,7 +80,7 @@ export default function LinksPage() {
           >
             Payment Links
           </h1>
-          <p className="font-mono text-muted text-sm">
+          <p className="font-mono text-muted-foreground text-sm">
             Create and manage checkout links for your products and services
           </p>
         </div>

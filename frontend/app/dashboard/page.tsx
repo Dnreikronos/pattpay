@@ -28,18 +28,18 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
-  // Calculate stats from mock data (memoized to avoid recalculation)
-  const activeSubscriptions = useMemo(() =>
-    mockSubscriptions.filter(s => s.status === 'active').length,
-    []
-  );
+  // Calculate stats from mock data (only on client to avoid hydration issues)
+  const activeSubscriptions = useMemo(() => {
+    if (!mounted) return 0; // Return 0 during SSR
+    return mockSubscriptions.filter(s => s.status === 'active').length;
+  }, [mounted]);
 
-  const totalRevenueUSD = useMemo(() =>
-    mockPayments
+  const totalRevenueUSD = useMemo(() => {
+    if (!mounted) return 0; // Return 0 during SSR
+    return mockPayments
       .filter(p => p.status === 'success')
-      .reduce((sum, p) => sum + p.amountUSD, 0),
-    []
-  );
+      .reduce((sum, p) => sum + p.amountUSD, 0);
+  }, [mounted]);
 
   const paymentsToday = useMemo(() => {
     if (!mounted) return 0; // Return 0 during SSR
@@ -67,13 +67,13 @@ export default function DashboardPage() {
         <h1 className="text-foreground" style={{ fontFamily: "var(--font-press-start)", fontWeight: 400, fontSize: "2.5rem" }}>
           Dashboard
         </h1>
-        <p className="font-mono text-muted text-sm">
+        <p className="font-mono text-muted-foreground text-sm">
           Overview of your payment activity and key metrics
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3" suppressHydrationWarning>
         <StatCard
           title="Active Subscriptions"
           value={activeSubscriptions.toString()}

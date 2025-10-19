@@ -42,7 +42,7 @@ export function LinkCard({ link, onClick }: LinkCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group border border-border bg-white rounded-xl p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-brand/30 hover:-translate-y-0.5 cursor-pointer"
+      className="group border border-border bg-card rounded-xl p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:border-brand/30 hover:-translate-y-0.5 cursor-pointer"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -55,7 +55,7 @@ export function LinkCard({ link, onClick }: LinkCardProps) {
               {link.name}
             </h3>
             {link.description && (
-              <p className="text-xs text-muted font-mono mt-0.5 line-clamp-1">
+              <p className="text-xs text-muted-foreground font-mono mt-0.5 line-clamp-1">
                 {link.description}
               </p>
             )}
@@ -71,7 +71,7 @@ export function LinkCard({ link, onClick }: LinkCardProps) {
         <span className="text-foreground font-mono font-bold text-lg">
           ${link.amountUSD.toFixed(2)}
         </span>
-        <span className="text-muted font-mono text-xs">
+        <span className="text-muted-foreground font-mono text-xs">
           (~{link.amount.toFixed(2)} SOL)
         </span>
         <Badge className={`${link.isRecurring ? 'bg-brand/10 text-brand border border-brand/20' : 'bg-accent/10 text-accent border border-accent/20'} font-mono text-xs font-medium px-2 py-0.5 rounded-full ml-auto`}>
@@ -89,20 +89,20 @@ export function LinkCard({ link, onClick }: LinkCardProps) {
       {/* URL */}
       <div className="mb-3 pb-3 border-b border-border/50">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-muted font-mono text-xs truncate flex-1">
+          <span className="text-muted-foreground font-mono text-xs truncate flex-1">
             {link.url.replace(/^https?:\/\//, '')}
           </span>
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={handleCopyUrl}
-              className="text-muted hover:text-brand transition-colors p-1"
+              className="text-muted-foreground hover:text-brand transition-colors p-1"
               title="Copy URL"
             >
               {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
             <button
               onClick={handleOpenLink}
-              className="text-muted hover:text-brand transition-colors p-1"
+              className="text-muted-foreground hover:text-brand transition-colors p-1"
               title="Open Link"
             >
               <ExternalLink className="h-3.5 w-3.5" />
@@ -114,19 +114,19 @@ export function LinkCard({ link, onClick }: LinkCardProps) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 text-center">
         <div>
-          <p className="text-muted text-xs font-mono mb-1">Payments</p>
+          <p className="text-muted-foreground text-xs font-mono mb-1">Payments</p>
           <p className="text-foreground font-mono font-bold text-sm">
             {link.totalPayments}
           </p>
         </div>
         <div>
-          <p className="text-muted text-xs font-mono mb-1">Views</p>
+          <p className="text-muted-foreground text-xs font-mono mb-1">Views</p>
           <p className="text-foreground font-mono font-bold text-sm">
             {link.views}
           </p>
         </div>
         <div>
-          <p className="text-muted text-xs font-mono mb-1">Conv. Rate</p>
+          <p className="text-muted-foreground text-xs font-mono mb-1">Conv. Rate</p>
           <p className="text-foreground font-mono font-bold text-sm">
             {link.views > 0 ? ((link.conversions / link.views) * 100).toFixed(1) : 0}%
           </p>
@@ -136,14 +136,14 @@ export function LinkCard({ link, onClick }: LinkCardProps) {
       {/* Footer */}
       <div className="mt-3 pt-3 border-t border-border/50">
         <div className="flex items-center justify-between">
-          <span className="text-muted text-xs font-mono">Created</span>
+          <span className="text-muted-foreground text-xs font-mono">Created</span>
           <span className="text-foreground text-xs font-mono" title={new Date(link.createdAt).toLocaleString()}>
             {formatDistanceToNow(new Date(link.createdAt), { addSuffix: true })}
           </span>
         </div>
         {link.redirectUrl && (
           <div className="flex items-center justify-between mt-1.5">
-            <span className="text-muted text-xs font-mono">Redirect</span>
+            <span className="text-muted-foreground text-xs font-mono">Redirect</span>
             <span className="text-foreground text-xs font-mono truncate max-w-[60%]">
               {link.redirectUrl.replace(/^https?:\/\//, '')}
             </span>

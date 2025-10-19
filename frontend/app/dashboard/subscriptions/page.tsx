@@ -83,7 +83,7 @@ export default function SubscriptionsPage() {
         >
           Subscriptions
         </h1>
-        <p className="font-mono text-muted text-sm">
+        <p className="font-mono text-muted-foreground text-sm">
           Manage and monitor all your recurring payment subscriptions
         </p>
       </div>

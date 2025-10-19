@@ -65,7 +65,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="opacity-0 group-hover:opacity-100 text-muted hover:text-brand transition-all duration-200"
+      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-brand transition-all duration-200"
       title="Copy"
     >
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -102,7 +102,7 @@ function SubscriptionActions({ subscription }: { subscription: Subscription }) {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[200px] rounded-xl border border-border bg-white p-1 shadow-lg"
+        className="w-[200px] rounded-xl border border-border bg-card p-1 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col gap-0.5">
@@ -172,7 +172,7 @@ export function SubscriptionTableNew({
             {row.getValue('payerName')}
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-muted font-mono text-xs">
+            <span className="text-muted-foreground font-mono text-xs">
               {row.original.payerWallet}
             </span>
             <CopyButton text={row.original.payerWallet} />
@@ -219,7 +219,7 @@ export function SubscriptionTableNew({
             <span className="text-foreground font-mono font-bold">
               ${subscription.amountUSD.toFixed(2)}
             </span>
-            <span className="text-muted font-mono text-xs">
+            <span className="text-muted-foreground font-mono text-xs">
               {subscription.amount.toFixed(2)} {subscription.tokenMint}
             </span>
           </div>
@@ -316,7 +316,7 @@ export function SubscriptionTableNew({
         {/* Mobile Skeleton */}
         <div className="md:hidden grid grid-cols-1 gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="border border-border bg-white rounded-xl p-4 shadow-sm animate-pulse">
+            <div key={i} className="border border-border bg-card rounded-xl p-4 shadow-sm animate-pulse">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-muted/20" />
@@ -340,7 +340,7 @@ export function SubscriptionTableNew({
         </div>
 
         {/* Desktop Skeleton */}
-        <div className="hidden md:block w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+        <div className="hidden md:block w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
           <Table>
             <TableHeader className="bg-muted/30 border-b border-border">
               <TableRow className="hover:bg-transparent">
@@ -398,10 +398,10 @@ export function SubscriptionTableNew({
 
   if (subscriptions.length === 0) {
     return (
-      <div className="w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <div className="p-12 text-center">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted/20 mb-4">
-            <svg className="h-8 w-8 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </div>
@@ -438,7 +438,7 @@ export function SubscriptionTableNew({
       </div>
 
       {/* Desktop View - Table */}
-      <div className="hidden md:block w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="hidden md:block w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/30 border-b border-border">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -459,7 +459,7 @@ export function SubscriptionTableNew({
                 <motion.tr
                   key={row.id}
                   onClick={() => onRowClick?.(row.original.id)}
-                  className="group relative bg-white border-b border-border/50 cursor-pointer align-middle transition-all duration-200 ease-out hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 hover:z-10"
+                  className="group relative bg-card border-b border-border/50 cursor-pointer align-middle transition-all duration-200 ease-out hover:bg-brand/5 hover:shadow-md hover:scale-[1.01] hover:-translate-y-0.5 hover:z-10"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{

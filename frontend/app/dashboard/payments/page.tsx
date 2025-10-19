@@ -83,7 +83,7 @@ export default function PaymentsPage() {
         >
           Payments
         </h1>
-        <p className="font-mono text-muted text-sm">
+        <p className="font-mono text-muted-foreground text-sm">
           Track and manage all your payment transactions
         </p>
       </div>

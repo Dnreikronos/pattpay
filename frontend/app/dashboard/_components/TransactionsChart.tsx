@@ -3,6 +3,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { TransactionChartData } from '@/types/chart'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
 interface TransactionsChartProps {
   data: TransactionChartData[]
@@ -10,10 +11,30 @@ interface TransactionsChartProps {
 }
 
 export function TransactionsChart({ data, loading }: TransactionsChartProps) {
+  const [chartColors, setChartColors] = useState({
+    border: '#e4e7ec',
+    muted: '#6b7280',
+    brand: '#4F46E5',
+    cardBg: '#ffffff'
+  })
+
+  useEffect(() => {
+    // Get CSS variables for dynamic theme colors
+    const root = document.documentElement
+    const styles = getComputedStyle(root)
+
+    setChartColors({
+      border: styles.getPropertyValue('--border').trim() || '#e4e7ec',
+      muted: styles.getPropertyValue('--fg-muted').trim() || '#6b7280',
+      brand: styles.getPropertyValue('--brand').trim() || '#4F46E5',
+      cardBg: styles.getPropertyValue('--card').trim() || '#ffffff'
+    })
+  }, [])
+
   if (loading) {
     return (
       <div className="w-full h-[400px] bg-surface rounded-2xl animate-pulse flex items-center justify-center">
-        <p className="font-mono text-base text-muted">Loading...</p>
+        <p className="font-mono text-base text-muted-foreground">Loading...</p>
       </div>
     )
   }
@@ -21,7 +42,7 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="w-full h-[400px] bg-surface rounded-2xl flex items-center justify-center">
-        <p className="font-mono text-base text-muted">No data available</p>
+        <p className="font-mono text-base text-muted-foreground">No data available</p>
       </div>
     )
   }
@@ -38,17 +59,17 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
-        <div className="bg-surface/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-brand/20">
-          <p className="font-mono text-xs text-muted mb-1">
+        <div className="bg-popover/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-brand/20">
+          <p className="font-mono text-xs text-muted-foreground mb-1">
             {new Date(data.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
           </p>
           <p className="font-display text-xl text-brand mb-1">
             ${data.volumeUSD.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} USD
           </p>
-          <p className="font-mono text-xs text-muted mb-1">
+          <p className="font-mono text-xs text-muted-foreground mb-1">
             ~{data.volume.toFixed(2)} SOL
           </p>
-          <p className="font-mono text-xs text-muted">
+          <p className="font-mono text-xs text-muted-foreground">
             {data.count} transactions
           </p>
         </div>
@@ -58,7 +79,7 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border">
+    <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border">
       {/* Modern Header */}
       <div className="px-6 py-5 border-b border-border">
         <div className="flex items-center justify-between gap-8">
@@ -81,7 +102,7 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
               <h3 className="font-sans text-xl font-semibold text-foreground m-0 p-0 leading-none">
                 Transaction Volume
               </h3>
-              <p className="font-mono text-xs text-muted m-0 p-0 mt-1.5 leading-none">
+              <p className="font-mono text-xs text-muted-foreground m-0 p-0 mt-1.5 leading-none">
                 Total revenue in period
               </p>
             </div>
@@ -90,10 +111,10 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
           {/* Right side - Stats */}
           <div className="shrink-0 flex flex-col items-end justify-center">
             <div className="flex items-baseline gap-1">
-              <span className="font-sans text-3xl font-bold text-[#10b981] leading-none">
+              <span className="font-sans text-3xl font-bold text-success leading-none">
                 ${(totalVolumeUSD / 1000).toFixed(1)}k
               </span>
-              <span className="font-mono text-xs text-muted leading-none">USD</span>
+              <span className="font-mono text-xs text-muted-foreground leading-none">USD</span>
             </div>
           </div>
         </div>
@@ -108,7 +129,7 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#e4e7ec"
+            stroke={chartColors.border}
             strokeOpacity={0.5}
             vertical={false}
           />
@@ -118,23 +139,23 @@ export function TransactionsChart({ data, loading }: TransactionsChartProps) {
               const date = new Date(value)
               return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
             }}
-            tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'var(--font-dm-mono)' }}
-            stroke="#e4e7ec"
+            tick={{ fill: chartColors.muted, fontSize: 11, fontFamily: 'var(--font-dm-mono)' }}
+            stroke={chartColors.border}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'var(--font-dm-mono)' }}
-            stroke="#e4e7ec"
+            tick={{ fill: chartColors.muted, fontSize: 11, fontFamily: 'var(--font-dm-mono)' }}
+            stroke={chartColors.border}
             tickLine={false}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#4F46E5', strokeWidth: 2, strokeDasharray: '5 5' }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: chartColors.brand, strokeWidth: 2, strokeDasharray: '5 5' }} />
           <Line
             type="monotone"
             dataKey="volume"
-            stroke="#4F46E5"
+            stroke={chartColors.brand}
             strokeWidth={3}
-            dot={{ fill: '#4F46E5', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, fill: '#4F46E5', stroke: '#fff', strokeWidth: 2 }}
+            dot={{ fill: chartColors.brand, strokeWidth: 2, r: 4 }}
+            activeDot={{ r: 6, fill: chartColors.brand, stroke: chartColors.cardBg, strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>
