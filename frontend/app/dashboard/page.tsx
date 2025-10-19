@@ -1,88 +1,16 @@
-import Image from "next/image";
+'use client'
 
-interface StatCardProps {
-  title: string;
-  value: string;
-  icon: string;
-  accentColor: string;
-}
-
-function StatCard({ title, value, icon, accentColor }: StatCardProps) {
-  return (
-    <div
-      className="relative bg-surface border-4 p-6 transition-all duration-300 hover:-translate-y-1"
-      style={{
-        borderColor: accentColor,
-        boxShadow: `6px 6px 0 0 ${accentColor}33`,
-      }}
-    >
-      {/* Pixel grid pattern background */}
-      <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(${accentColor} 1px, transparent 1px), linear-gradient(90deg, ${accentColor} 1px, transparent 1px)`,
-          backgroundSize: '20px 20px',
-        }}
-      />
-
-      {/* Top accent bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
-        style={{
-          background: `linear-gradient(90deg, ${accentColor}, transparent)`,
-          opacity: 0.3,
-        }}
-      />
-
-      {/* Bottom accent bar */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-1 pointer-events-none"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${accentColor})`,
-          opacity: 0.3,
-        }}
-      />
-
-      {/* Corner pixel decorations */}
-      <div
-        className="absolute top-0 right-0 w-2 h-2 pointer-events-none"
-        style={{ backgroundColor: accentColor, opacity: 0.4 }}
-      />
-      <div
-        className="absolute bottom-0 left-0 w-2 h-2 pointer-events-none"
-        style={{ backgroundColor: accentColor, opacity: 0.4 }}
-      />
-
-      {/* Card content - horizontal split */}
-      <div className="relative flex items-center justify-between gap-4">
-        {/* Left side - Text content */}
-        <div className="flex flex-col gap-3 flex-1 min-w-0">
-          <h3 className="text-lg md:text-xl font-sans font-bold text-fg">{title}</h3>
-          <p
-            className="text-5xl md:text-6xl font-display font-bold leading-none"
-            style={{ color: accentColor }}
-          >
-            {value}
-          </p>
-        </div>
-
-        {/* Right side - Pixel art image */}
-        <div className="shrink-0 w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
-          <Image
-            src={icon}
-            alt={title}
-            width={96}
-            height={96}
-            className="pixelated w-full h-full object-contain"
-            style={{ imageRendering: "pixelated" }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+import { useState } from "react";
+import { StatCard } from "./_components/StatCard";
+import { TransactionsChart } from "./_components/TransactionsChart";
+import { MRRChart } from "./_components/MRRChart";
+import { useChartData } from "@/lib/hooks/useChartData";
+import type { ChartPeriod } from "@/types/chart";
 
 export default function DashboardPage() {
+  const [period, setPeriod] = useState<ChartPeriod>('7d')
+  const { transactions, mrr, loading, error } = useChartData(period)
+
   return (
     <div className="flex h-full flex-col gap-6 p-8">
       <div className="flex flex-col gap-2">
@@ -91,6 +19,7 @@ export default function DashboardPage() {
         </h1>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Active Subscriptions"
@@ -110,6 +39,42 @@ export default function DashboardPage() {
           icon="/person3.png"
           accentColor="#818CF8"
         />
+      </div>
+
+      {/* Period Toggle */}
+      <div className="flex items-center gap-3">
+        <span className="font-mono text-sm text-muted">Period:</span>
+        <div className="flex gap-2">
+          {(['7d', '30d', '90d'] as ChartPeriod[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`
+                px-4 py-2 font-mono text-xs border-2 transition-all
+                ${
+                  period === p
+                    ? 'bg-brand text-surface border-brand shadow-[2px_2px_0_0_rgba(79,70,229,1)]'
+                    : 'bg-surface text-fg border-border hover:border-brand-300 hover:-translate-y-[2px]'
+                }
+              `}
+            >
+              {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : '90 dias'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-error/10 border-2 border-error p-4 text-error font-mono text-sm">
+          Error loading data: {error}
+        </div>
+      )}
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <TransactionsChart data={transactions} loading={loading} />
+        <MRRChart data={mrr} loading={loading} />
       </div>
     </div>
   );
