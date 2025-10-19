@@ -2,6 +2,7 @@
 
 import type { TransactionChartData, MRRChartData } from '@/types/chart'
 import type { Payment, PaymentStats } from '@/types/payment'
+import type { CheckoutLink, LinkStats } from '@/types/link'
 
 // Generate last 7 days of transaction data
 export const mockTransactionChartData: TransactionChartData[] = Array.from({ length: 7 }, (_, i) => {
@@ -319,4 +320,237 @@ export const mockPaymentStats: PaymentStats = {
   volumeTodayUSD: 18750,
   averageTicket: 781.25, // $18,750 / 24 payments
   averageTicketTrend: 5.2 // +5.2% vs yesterday
+}
+
+// Mock Checkout Links
+export const mockCheckoutLinks: CheckoutLink[] = [
+  {
+    id: 'cl_1',
+    name: 'Premium Plan Monthly',
+    amount: 15.0,
+    amountUSD: 1500,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/premium-monthly',
+    isRecurring: true,
+    redirectUrl: 'https://app.example.com/success',
+    description: 'Monthly subscription for premium features',
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 47,
+    conversions: 47,
+    views: 189
+  },
+  {
+    id: 'cl_2',
+    name: 'One-time Donation',
+    amount: 5.0,
+    amountUSD: 500,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/donation',
+    isRecurring: false,
+    redirectUrl: 'https://thankyou.example.com',
+    description: 'Support our mission',
+    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 234,
+    conversions: 234,
+    views: 1056
+  },
+  {
+    id: 'cl_3',
+    name: 'Annual Subscription',
+    amount: 150.0,
+    amountUSD: 15000,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/annual-sub',
+    isRecurring: true,
+    redirectUrl: 'https://app.example.com/welcome',
+    description: 'Yearly plan with 20% discount',
+    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 12,
+    conversions: 12,
+    views: 98
+  },
+  {
+    id: 'cl_4',
+    name: 'Basic Tier',
+    amount: 8.0,
+    amountUSD: 800,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/basic-tier',
+    isRecurring: true,
+    redirectUrl: 'https://app.example.com/dashboard',
+    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 89,
+    conversions: 89,
+    views: 412
+  },
+  {
+    id: 'cl_5',
+    name: 'Coffee Tip ☕',
+    amount: 1.0,
+    amountUSD: 100,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/coffee',
+    isRecurring: false,
+    redirectUrl: 'https://thanks.example.com',
+    description: 'Buy me a coffee',
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 156,
+    conversions: 156,
+    views: 523
+  },
+  {
+    id: 'cl_6',
+    name: 'Weekly Newsletter',
+    amount: 3.0,
+    amountUSD: 300,
+    status: 'inactive',
+    url: 'https://pay.pattpay.com/cl/newsletter',
+    isRecurring: true,
+    description: 'Weekly premium newsletter access',
+    createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 23,
+    conversions: 23,
+    views: 145
+  },
+  {
+    id: 'cl_7',
+    name: 'Product Purchase',
+    amount: 49.99,
+    amountUSD: 4999,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/product-x',
+    isRecurring: false,
+    redirectUrl: 'https://shop.example.com/confirmation',
+    description: 'One-time product payment',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 67,
+    conversions: 67,
+    views: 342
+  },
+  {
+    id: 'cl_8',
+    name: 'VIP Access Monthly',
+    amount: 25.0,
+    amountUSD: 2500,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/vip-monthly',
+    isRecurring: true,
+    redirectUrl: 'https://vip.example.com',
+    description: 'Exclusive VIP member benefits',
+    createdAt: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 34,
+    conversions: 34,
+    views: 156
+  },
+  {
+    id: 'cl_9',
+    name: 'Early Bird Special',
+    amount: 99.0,
+    amountUSD: 9900,
+    status: 'inactive',
+    url: 'https://pay.pattpay.com/cl/earlybird',
+    isRecurring: false,
+    description: 'Limited time early bird offer',
+    createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 45,
+    conversions: 45,
+    views: 234
+  },
+  {
+    id: 'cl_10',
+    name: 'Starter Pack',
+    amount: 12.5,
+    amountUSD: 1250,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/starter',
+    isRecurring: true,
+    redirectUrl: 'https://app.example.com/onboarding',
+    description: 'Perfect for beginners',
+    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 78,
+    conversions: 78,
+    views: 389
+  },
+  {
+    id: 'cl_11',
+    name: 'Community Support',
+    amount: 2.0,
+    amountUSD: 200,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/community',
+    isRecurring: true,
+    description: 'Monthly community contribution',
+    createdAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 123,
+    conversions: 123,
+    views: 567
+  },
+  {
+    id: 'cl_12',
+    name: 'Pro Features Upgrade',
+    amount: 20.0,
+    amountUSD: 2000,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/pro-upgrade',
+    isRecurring: false,
+    redirectUrl: 'https://app.example.com/pro',
+    description: 'One-time upgrade to pro features',
+    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 56,
+    conversions: 56,
+    views: 234
+  },
+  {
+    id: 'cl_13',
+    name: 'Workshop Registration',
+    amount: 75.0,
+    amountUSD: 7500,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/workshop',
+    isRecurring: false,
+    redirectUrl: 'https://events.example.com/registered',
+    description: 'Exclusive workshop access',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 28,
+    conversions: 28,
+    views: 112
+  },
+  {
+    id: 'cl_14',
+    name: 'Quarterly Membership',
+    amount: 40.0,
+    amountUSD: 4000,
+    status: 'active',
+    url: 'https://pay.pattpay.com/cl/quarterly',
+    isRecurring: true,
+    redirectUrl: 'https://members.example.com',
+    description: 'Billed every 3 months',
+    createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 19,
+    conversions: 19,
+    views: 87
+  },
+  {
+    id: 'cl_15',
+    name: 'Beta Access',
+    amount: 0.5,
+    amountUSD: 50,
+    status: 'inactive',
+    url: 'https://pay.pattpay.com/cl/beta',
+    isRecurring: false,
+    description: 'Early access to beta features',
+    createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+    totalPayments: 342,
+    conversions: 342,
+    views: 1234
+  }
+]
+
+// Mock Link Stats
+export const mockLinkStats: LinkStats = {
+  totalActive: mockCheckoutLinks.filter(l => l.status === 'active').length,
+  totalCreated: mockCheckoutLinks.length,
+  averageConversion: 21.8, // Average conversion rate across all links
+  totalRevenue: mockCheckoutLinks.reduce((sum, link) => sum + (link.amount * link.totalPayments), 0),
+  totalRevenueUSD: mockCheckoutLinks.reduce((sum, link) => sum + (link.amountUSD * link.totalPayments), 0)
 }
