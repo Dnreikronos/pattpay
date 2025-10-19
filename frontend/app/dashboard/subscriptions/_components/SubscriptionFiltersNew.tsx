@@ -1,0 +1,575 @@
+'use client'
+
+import { useState } from 'react'
+import { Check, Search as SearchIcon, CheckCircle2, Calendar, ArrowLeft, Coins } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import type { SubscriptionFilters as Filters, SubscriptionStatus } from '@/types/subscription'
+import { Badge } from '@/components/ui/badge'
+import { X } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { SlidersHorizontal } from 'lucide-react'
+
+interface SubscriptionFiltersProps {
+  filters: Filters
+  onFiltersChange: (filters: Filters) => void
+}
+
+type FilterCategory = 'main' | 'status' | 'date' | 'token'
+
+export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFiltersProps) {
+  const [open, setOpen] = useState(false)
+  const [currentView, setCurrentView] = useState<FilterCategory>('main')
+
+  // Reset to main view when popover closes
+  useState(() => {
+    if (!open) {
+      setCurrentView('main')
+    }
+  })
+
+  const handleSearchChange = (value: string) => {
+    onFiltersChange({ ...filters, search: value })
+  }
+
+  const toggleStatus = (status: SubscriptionStatus) => {
+    const currentStatuses = filters.statuses || []
+    const newStatuses = currentStatuses.includes(status)
+      ? currentStatuses.filter(s => s !== status)
+      : [...currentStatuses, status]
+
+    onFiltersChange({ ...filters, statuses: newStatuses })
+  }
+
+  const setDatePreset = (preset: 'last-7-days' | 'last-30-days' | 'last-90-days') => {
+    onFiltersChange({ ...filters, datePreset: preset, dateRange: undefined })
+    setTimeout(() => setCurrentView('main'), 200)
+  }
+
+  const setTokenMint = (token: string) => {
+    onFiltersChange({ ...filters, tokenMint: filters.tokenMint === token ? undefined : token })
+    setTimeout(() => setCurrentView('main'), 200)
+  }
+
+  const clearSearch = () => {
+    onFiltersChange({ ...filters, search: '' })
+  }
+
+  const clearStatusFilter = () => {
+    onFiltersChange({ ...filters, statuses: [] })
+  }
+
+  const clearDateFilter = () => {
+    onFiltersChange({ ...filters, datePreset: undefined, dateRange: undefined })
+  }
+
+  const clearTokenFilter = () => {
+    onFiltersChange({ ...filters, tokenMint: undefined })
+  }
+
+  const hasActiveFilters = (filters.statuses && filters.statuses.length > 0) || !!filters.search || !!filters.datePreset || !!filters.tokenMint
+
+  const getActiveCount = () => {
+    let count = 0
+    if (filters.statuses && filters.statuses.length > 0) count++
+    if (filters.datePreset) count++
+    if (filters.tokenMint) count++
+    return count
+  }
+
+  // Status icons mapping
+  const statusIcons: Record<SubscriptionStatus, React.ReactNode> = {
+    active: <CheckCircle2 className="h-3 w-3" />,
+    cancelled: <CheckCircle2 className="h-3 w-3" />,
+    expired: <CheckCircle2 className="h-3 w-3" />,
+  }
+
+  const dateLabels = {
+    'last-7-days': 'Last 7 days',
+    'last-30-days': 'Last 30 days',
+    'last-90-days': 'Last 90 days',
+  }
+
+  const tokenLabels: Record<string, string> = {
+    'USDT': 'USDT',
+    'USDC': 'USDC',
+  }
+
+  // Build custom filter chips
+  const renderFilterChips = () => {
+    const hasChips = filters.search || (filters.statuses && filters.statuses.length > 0) || filters.datePreset || filters.tokenMint
+
+    if (!hasChips) {
+      return null
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <AnimatePresence mode="popLayout">
+          {/* Search Chip */}
+          {filters.search && (
+            <motion.div
+              key="search-chip"
+              layout
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              <Badge
+                variant="secondary"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+              >
+                <SearchIcon className="h-3 w-3" />
+                <span>{filters.search}</span>
+                <button
+                  onClick={clearSearch}
+                  className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-muted/50 focus:outline-none"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            </motion.div>
+          )}
+
+          {/* Date Chip */}
+          {filters.datePreset && (
+            <motion.div
+              key="date-chip"
+              layout
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              <Badge
+                variant="secondary"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+              >
+                <Calendar className="h-3 w-3" />
+                <span>{dateLabels[filters.datePreset]}</span>
+                <button
+                  onClick={clearDateFilter}
+                  className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-muted/50 focus:outline-none"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            </motion.div>
+          )}
+
+          {/* Token Chip */}
+          {filters.tokenMint && (
+            <motion.div
+              key="token-chip"
+              layout
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              <Badge
+                variant="secondary"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+              >
+                <Coins className="h-3 w-3" />
+                <span>{tokenLabels[filters.tokenMint] || filters.tokenMint}</span>
+                <button
+                  onClick={clearTokenFilter}
+                  className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-muted/50 focus:outline-none"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            </motion.div>
+          )}
+
+          {/* Status Chips */}
+          {filters.statuses?.map((status) => (
+            <motion.div
+              key={`status-${status}`}
+              layout
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              <Badge
+                variant="secondary"
+                className="group flex items-center gap-1.5 rounded-2xl border-2 border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all hover:border-brand/30"
+              >
+                {statusIcons[status]}
+                <span className="capitalize">{status}</span>
+                <button
+                  onClick={() => toggleStatus(status)}
+                  className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-muted/50 focus:outline-none"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            </motion.div>
+          ))}
+
+          {/* Clear All Button */}
+          {hasActiveFilters && (
+            <motion.button
+              layout
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              onClick={() => onFiltersChange({ statuses: [], search: '', datePreset: undefined, tokenMint: undefined })}
+              className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Clear all
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    )
+  }
+
+  // Category items
+  const CategoryItem = ({ label, description, icon, activeCount, onClick }: {
+    label: string
+    description: string
+    icon: React.ReactNode
+    activeCount?: number
+    onClick: () => void
+  }) => (
+    <button
+      onClick={onClick}
+      className="group flex w-full cursor-pointer items-center gap-3 rounded-lg border-2 border-border px-4 py-3 text-left transition-all hover:border-brand/30 hover:bg-muted/20"
+    >
+      <div className="flex h-9 w-9 items-center justify-center rounded-md border-2 border-muted-foreground/30 text-muted-foreground transition-all group-hover:border-brand group-hover:bg-brand/5 group-hover:text-brand">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-sm font-medium">{label}</span>
+          {activeCount !== undefined && activeCount > 0 && (
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand/10 px-1.5 text-[10px] font-medium text-brand">
+              {activeCount}
+            </span>
+          )}
+        </div>
+        <p className="mt-0.5 font-mono text-xs text-muted-foreground">{description}</p>
+      </div>
+      <svg className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  )
+
+  // Filter popover content
+  const filterContent = (
+    <div className="flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          {currentView !== 'main' && (
+            <button
+              onClick={() => setCurrentView('main')}
+              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-2 border-border transition-all hover:border-brand hover:bg-brand/5"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <h3 className="font-mono text-sm font-medium">
+            {currentView === 'main' && 'Filters'}
+            {currentView === 'status' && 'Status'}
+            {currentView === 'date' && 'Date Range'}
+            {currentView === 'token' && 'Token Type'}
+          </h3>
+        </div>
+
+        {/* Clear buttons */}
+        {currentView === 'status' && filters.statuses && filters.statuses.length > 0 && (
+          <button
+            onClick={clearStatusFilter}
+            className="cursor-pointer font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Clear
+          </button>
+        )}
+        {currentView === 'date' && filters.datePreset && (
+          <button
+            onClick={clearDateFilter}
+            className="cursor-pointer font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Clear
+          </button>
+        )}
+        {currentView === 'token' && filters.tokenMint && (
+          <button
+            onClick={clearTokenFilter}
+            className="cursor-pointer font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="min-h-[200px]">
+        <AnimatePresence mode="wait">
+          {/* Main Categories View */}
+          {currentView === 'main' && (
+            <motion.div
+              key="main"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-2 p-3"
+            >
+              <CategoryItem
+                label="Date Range"
+                description="Filter by time period"
+                icon={<Calendar className="h-4 w-4" />}
+                activeCount={filters.datePreset ? 1 : 0}
+                onClick={() => setCurrentView('date')}
+              />
+              <CategoryItem
+                label="Status"
+                description="Filter by subscription status"
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                activeCount={filters.statuses?.length || 0}
+                onClick={() => setCurrentView('status')}
+              />
+              <CategoryItem
+                label="Token Type"
+                description="Filter by payment token"
+                icon={<Coins className="h-4 w-4" />}
+                activeCount={filters.tokenMint ? 1 : 0}
+                onClick={() => setCurrentView('token')}
+              />
+            </motion.div>
+          )}
+
+          {/* Date Range Options */}
+          {currentView === 'date' && (
+            <motion.div
+              key="date"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-1 p-3"
+            >
+              {(['last-7-days', 'last-30-days', 'last-90-days'] as const).map((preset) => (
+                <button
+                  key={preset}
+                  onClick={() => setDatePreset(preset)}
+                  className={`
+                    group flex w-full cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-2.5 text-left transition-all
+                    ${
+                      filters.datePreset === preset
+                        ? 'border-brand bg-brand/10 text-brand shadow-sm'
+                        : 'border-border bg-transparent hover:border-brand/30 hover:bg-muted/20'
+                    }
+                  `}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span className="flex-1 font-mono text-sm font-medium">{dateLabels[preset]}</span>
+                  <div
+                    className={`
+                      flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all
+                      ${
+                        filters.datePreset === preset
+                          ? 'border-brand bg-brand'
+                          : 'border-muted-foreground/30 bg-transparent group-hover:border-brand/50'
+                      }
+                    `}
+                  >
+                    <AnimatePresence>
+                      {filters.datePreset === preset && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                        >
+                          <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Status Options (multiple selection) */}
+          {currentView === 'status' && (
+            <motion.div
+              key="status"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-1 p-3"
+            >
+              {(['active', 'cancelled', 'expired'] as SubscriptionStatus[]).map((status) => {
+                const isSelected = filters.statuses?.includes(status) || false
+                return (
+                  <button
+                    key={status}
+                    onClick={() => toggleStatus(status)}
+                    className={`
+                      group flex w-full cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-2.5 text-left transition-all
+                      ${
+                        isSelected
+                          ? 'border-brand bg-brand/10 text-brand shadow-sm'
+                          : 'border-border bg-transparent hover:border-brand/30 hover:bg-muted/20'
+                      }
+                    `}
+                  >
+                    {statusIcons[status]}
+                    <span className="flex-1 font-mono text-sm font-medium capitalize">{status}</span>
+                    <div
+                      className={`
+                        flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all
+                        ${
+                          isSelected
+                            ? 'border-brand bg-brand'
+                            : 'border-muted-foreground/30 bg-transparent group-hover:border-brand/50'
+                        }
+                      `}
+                    >
+                      <AnimatePresence>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                          >
+                            <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </button>
+                )
+              })}
+            </motion.div>
+          )}
+
+          {/* Token Type Options */}
+          {currentView === 'token' && (
+            <motion.div
+              key="token"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-1 p-3"
+            >
+              {Object.entries(tokenLabels).map(([token, label]) => (
+                <button
+                  key={token}
+                  onClick={() => setTokenMint(token)}
+                  className={`
+                    group flex w-full cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-2.5 text-left transition-all
+                    ${
+                      filters.tokenMint === token
+                        ? 'border-brand bg-brand/10 text-brand shadow-sm'
+                        : 'border-border bg-transparent hover:border-brand/30 hover:bg-muted/20'
+                    }
+                  `}
+                >
+                  <Coins className="h-4 w-4" />
+                  <span className="flex-1 font-mono text-sm font-medium">{label}</span>
+                  <div
+                    className={`
+                      flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all
+                      ${
+                        filters.tokenMint === token
+                          ? 'border-brand bg-brand'
+                          : 'border-muted-foreground/30 bg-transparent group-hover:border-brand/50'
+                      }
+                    `}
+                  >
+                    <AnimatePresence>
+                      {filters.tokenMint === token && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                        >
+                          <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Search Bar and Filter Button */}
+      <div className="flex items-center gap-3">
+        {/* Search Bar */}
+        <div className="relative flex-1 max-w-md group">
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted transition-colors group-hover:text-brand" />
+          <input
+            type="text"
+            placeholder="Search by payer name, wallet or plan..."
+            value={filters.search || ''}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="flex h-10 w-full rounded-md border-2 border-brand bg-background px-3 py-2 pl-10 pr-8 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand focus-visible:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] hover:shadow-sm hover:bg-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          {filters.search && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Filter Popover */}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-10 gap-2 border-2 border-border bg-white font-mono text-sm shadow-sm transition-all hover:border-brand/30 hover:bg-white hover:shadow cursor-pointer px-4"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>Filters</span>
+              {getActiveCount() > 0 && (
+                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand/10 px-1.5 text-[10px] font-medium text-brand">
+                  {getActiveCount()}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[360px] p-0 shadow-lg" align="start">
+            {filterContent}
+          </PopoverContent>
+        </Popover>
+
+        {hasActiveFilters && (
+          <span className="font-mono text-xs text-muted-foreground">
+            Active filters applied
+          </span>
+        )}
+      </div>
+
+      {/* Custom Filter Chips */}
+      {renderFilterChips()}
+    </div>
+  )
+}
