@@ -11,6 +11,16 @@ import type { PaymentFilters as Filters } from '@/types/payment'
 import { mockPayments } from '@/mocks/data'
 import type { VisibilityState } from '@tanstack/react-table'
 
+// Helper function to format currency values
+const formatCurrency = (value: number): string => {
+  if (value >= 1000000) {
+    return `$${(value / 1000000).toFixed(1)}M`
+  } else if (value >= 1000) {
+    return `$${(value / 1000).toFixed(1)}K`
+  }
+  return `$${value.toFixed(0)}`
+}
+
 const COLUMN_LABELS: Record<string, string> = {
   hash: 'Hash',
   createdAt: 'Date',
@@ -88,9 +98,9 @@ export default function PaymentsPage() {
         />
         <StatCard
           title="Volume (24h)"
-          value={loading ? "..." : `${stats.volumeToday.toFixed(1)} SOL`}
+          value={loading ? "..." : formatCurrency(stats.volumeTodayUSD)}
           icon="/person2.png"
-          accentColor="#F2B94B"
+          accentColor="#10b981"
         />
         <StatCard
           title="Average Ticket"

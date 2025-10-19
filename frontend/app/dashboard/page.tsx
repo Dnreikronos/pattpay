@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useMemo } from "react";
 import { StatCard } from "./_components/StatCard";
 import { TransactionsChart } from "./_components/TransactionsChart";
 import { MRRChart } from "./_components/MRRChart";
@@ -8,9 +9,12 @@ import { useChartData } from "@/lib/hooks/useChartData";
 import { useFilterStore } from "@/lib/stores/filter-store";
 import type { ChartPeriod } from "@/types/chart";
 import { motion } from "framer-motion";
+import { mockSubscriptions } from "@/mocks/data";
+import { mockPayments } from "@/mocks/data";
 
 export default function DashboardPage() {
   const { dateFilter } = useFilterStore();
+  const [mounted, setMounted] = useState(false);
 
   // Map filter preset to chart period
   const period: ChartPeriod =
@@ -18,6 +22,44 @@ export default function DashboardPage() {
     dateFilter.preset === 'last-90-days' ? '90d' : '30d';
 
   const { transactions, mrr, loading, error } = useChartData(period)
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Calculate stats from mock data (memoized to avoid recalculation)
+  const activeSubscriptions = useMemo(() =>
+    mockSubscriptions.filter(s => s.status === 'active').length,
+    []
+  );
+
+  const totalRevenueUSD = useMemo(() =>
+    mockPayments
+      .filter(p => p.status === 'success')
+      .reduce((sum, p) => sum + p.amountUSD, 0),
+    []
+  );
+
+  const paymentsToday = useMemo(() => {
+    if (!mounted) return 0; // Return 0 during SSR
+
+    return mockPayments.filter(p => {
+      const paymentDate = new Date(p.createdAt)
+      const today = new Date()
+      return paymentDate.toDateString() === today.toDateString()
+    }).length;
+  }, [mounted]);
+
+  // Helper function to format currency values
+  const formatCurrency = (value: number): string => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(1)}M`
+    } else if (value >= 1000) {
+      return `$${(value / 1000).toFixed(1)}K`
+    }
+    return `$${value.toFixed(0)}`
+  }
 
   return (
     <div className="flex h-full flex-col gap-6 p-8">
@@ -34,19 +76,19 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Active Subscriptions"
-          value="0"
+          value={activeSubscriptions.toString()}
           icon="/person1.png"
           accentColor="#4F46E5"
         />
         <StatCard
           title="Total Revenue"
-          value="0 SOL"
+          value={formatCurrency(totalRevenueUSD)}
           icon="/person2.png"
-          accentColor="#F2B94B"
+          accentColor="#10b981"
         />
         <StatCard
           title="Payments Today"
-          value="0"
+          value={paymentsToday.toString()}
           icon="/person3.png"
           accentColor="#818CF8"
         />

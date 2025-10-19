@@ -107,7 +107,7 @@ export default function LinksPage() {
           title="Total Links"
           value={loading ? '...' : stats.totalCreated.toString()}
           icon="/person2.png"
-          accentColor="#F2B94B"
+          accentColor="#10b981"
         />
         <StatCard
           title="Total Payments"
