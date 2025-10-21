@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import { ForceTheme } from "@/components/providers/force-theme";
 
 export default function HomeLayout({
   children,
@@ -7,6 +8,7 @@ export default function HomeLayout({
 }) {
   return (
     <>
+      <ForceTheme theme="light" />
       <Navbar />
       {children}
     </>
