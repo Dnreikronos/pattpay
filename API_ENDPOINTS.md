@@ -15,52 +15,129 @@ This document outlines the **essential API endpoints** for PattPay's MVP backend
 
 ## 🔐 Authentication & User Management
 
-### User Registration & Login
+### Dual Authentication System
+
+PattPay supports two authentication methods that are mutually exclusive:
+
+- **Traditional**: Email/Password authentication
+- **Web3**: Solana wallet (Phantom) authentication
+
+Users must choose one method during registration and cannot switch between them.
+
+### Authentication Endpoints
 
 ```http
 POST /api/auth/register
 POST /api/auth/login
+POST /api/auth/solana-signin-data
+POST /api/auth/solana-verify
 GET  /api/auth/me
 ```
 
-**User Registration**
+### **Traditional Email/Password Authentication**
+
+**User Registration (Email/Password)**
 
 ```typescript
 POST /api/auth/register
 Content-Type: application/json
 
 {
-  "walletAddress": "string", // Solana wallet address
-  "name": "string",
-  "email": "string?",
-  "signature": "string" // Wallet signature for verification
+  "authMethod": "email_password",
+  "email": "user@example.com",
+  "password": "securePassword123",
+  "name": "John Doe"
 }
 
 Response: {
   "user": {
     "id": "uuid",
-    "walletAddress": "string",
-    "name": "string",
-    "email": "string?",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "authMethod": "email_password",
     "createdAt": "ISO8601"
   },
   "token": "jwt_token"
 }
 ```
 
-**User Login**
+**User Login (Email/Password)**
 
 ```typescript
 POST /api/auth/login
 Content-Type: application/json
 
 {
-  "walletAddress": "string",
-  "signature": "string"
+  "authMethod": "email_password",
+  "email": "user@example.com",
+  "password": "securePassword123"
 }
 
 Response: {
   "user": User,
+  "token": "jwt_token"
+}
+```
+
+### **Web3 Solana Wallet Authentication (SIWS Standard)**
+
+**Get Sign-In Data**
+
+```typescript
+POST /api/auth/solana-signin-data
+Content-Type: application/json
+
+{
+  "walletAddress": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
+}
+
+Response: {
+  "signInData": {
+    "domain": "pattpay.com",
+    "statement": "Please sign this message to authenticate with PattPay.",
+    "version": "1",
+    "nonce": "random_nonce_string",
+    "chainId": "mainnet",
+    "issuedAt": "2025-01-18T10:30:00.000Z",
+    "resources": ["https://pattpay.com"]
+  }
+}
+```
+
+**Verify Sign-In Output**
+
+```typescript
+POST /api/auth/solana-verify
+Content-Type: application/json
+
+{
+  "signInData": {
+    "domain": "pattpay.com",
+    "statement": "Please sign this message to authenticate with PattPay.",
+    "version": "1",
+    "nonce": "random_nonce_string",
+    "chainId": "mainnet",
+    "issuedAt": "2025-01-18T10:30:00.000Z",
+    "resources": ["https://pattpay.com"]
+  },
+  "signInOutput": {
+    "account": {
+      "address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+      "publicKey": "base64_encoded_public_key"
+    },
+    "signature": "base64_encoded_signature"
+  },
+  "name": "John Doe" // Optional, for first-time users
+}
+
+Response: {
+  "user": {
+    "id": "uuid",
+    "walletAddress": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+    "name": "John Doe",
+    "authMethod": "solana_wallet",
+    "createdAt": "ISO8601"
+  },
   "token": "jwt_token"
 }
 ```
@@ -72,9 +149,43 @@ GET /api/auth/me
 Authorization: Bearer <token>
 
 Response: {
-  "user": User
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com", // Only for email_password users
+    "walletAddress": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM", // Only for solana_wallet users
+    "name": "John Doe",
+    "authMethod": "email_password" | "solana_wallet",
+    "createdAt": "ISO8601"
+  }
 }
 ```
+
+### **Authentication Flow Examples**
+
+#### **Email/Password Flow**
+
+1. User fills registration form with email/password
+2. Backend creates user with `authMethod: "email_password"`
+3. User logs in with email/password
+4. Backend verifies credentials and issues JWT
+
+#### **Solana Wallet Flow (SIWS Standard)**
+
+1. User connects Phantom wallet
+2. Frontend requests sign-in data from `/api/auth/solana-signin-data`
+3. User signs SIWS message with wallet using `wallet.signIn(signInData)`
+4. Frontend sends `signInData` and `signInOutput` to `/api/auth/solana-verify`
+5. Backend verifies using `verifySignIn(signInData, signInOutput)` and issues JWT
+
+### **Security Considerations**
+
+- Users cannot authenticate with different method than their registration method
+- Solana signatures are verified using `@solana/wallet-standard-util` with SIWS standard
+- Passwords are hashed using bcrypt with salt rounds
+- JWT tokens expire after 24 hours
+- Rate limiting: 5 attempts/minute per IP for auth endpoints
+- SIWS nonce prevents replay attacks
+- Domain validation ensures requests come from authorized sources
 
 ---
 
@@ -429,9 +540,10 @@ Response: {
 ```typescript
 interface User {
   id: string;
-  walletAddress: string;
   name: string;
-  email?: string;
+  authMethod: "email_password" | "solana_wallet";
+  email?: string; // Only for email_password users
+  walletAddress?: string; // Only for solana_wallet users
   createdAt: string;
   updatedAt: string;
 }

@@ -28,6 +28,7 @@ POST /api/auth/login
 
 // Response creates user record in database
 // Tables used: receivers (Alice becomes a receiver/merchant)
+// Note: Alice can choose email/password or Solana wallet authentication
 ```
 
 #### **Step 2: Create Basic Plan Payment Link**
