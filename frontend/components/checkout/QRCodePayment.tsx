@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { QRCodeSVG } from "react-qr-code";
+import QRCode from "react-qr-code";
 import { cn } from "@/lib/utils";
 
 interface QRCodePaymentProps {
@@ -55,11 +55,10 @@ export default function QRCodePayment({
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                 className="inline-block p-4 bg-white rounded-lg shadow-sm"
               >
-                <QRCodeSVG
+                <QRCode
                   value={paymentAddress}
                   size={200}
                   level="H"
-                  includeMargin={false}
                 />
               </motion.div>
             </div>
