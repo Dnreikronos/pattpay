@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AuthMethod {
+  EMAIL_PASSWORD
+  SOLANA_WALLET
+}
+
 model Payer {
   id            String   @id @default(uuid()) @db.Uuid
   walletAddress String   @unique @map("wallet_address")
@@ -71,14 +76,17 @@ model Plan {
 }
 
 model Receiver {
-  id               String   @id @default(uuid()) @db.Uuid
-  walletAddress    String   @unique @map("wallet_address")
-  name             String   @map("name")
-  description      String?  @map("description")
-  tokenAccountUSDT String   @map("token_account_usdt")
-  tokenAccountUSDC String   @map("token_account_usdc")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id               String     @id @default(uuid()) @db.Uuid
+  name             String     @map("name")
+  authMethod       AuthMethod @map("auth_method")
+  email            String?    @unique
+  passwordHash     String?    @map("password_hash")
+  walletAddress    String     @unique @map("wallet_address")
+  description      String?    @map("description")
+  tokenAccountUSDT String     @map("token_account_usdt")
+  tokenAccountUSDC String     @map("token_account_usdc")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
 
   plans Plan[]
 
