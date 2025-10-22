@@ -32,7 +32,7 @@ export default function Navbar() {
             className="flex items-center gap-2 text-brand hover:text-brand-600 transition-all duration-200 text-xs sm:text-sm group hover:gap-3 hover:-translate-y-[1px]"
             style={{ fontFamily: "var(--font-press-start)", fontWeight: 400 }}
           >
-            <span className="group-hover:tracking-wider transition-all duration-200">Get Started</span>
+            <span className="group-hover:tracking-wider transition-all duration-200">View Demo</span>
             <motion.div
               animate={{ x: [0, 6, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}

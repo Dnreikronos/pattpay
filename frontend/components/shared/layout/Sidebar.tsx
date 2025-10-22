@@ -7,12 +7,10 @@ import {
   LayoutDashboard,
   Wallet,
   CreditCard,
-  HelpCircle,
   Link2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 
 export function Sidebar() {
@@ -105,22 +103,6 @@ export function Sidebar() {
                       <Link2 className="h-4 w-4" />
                       <p className="text-sm font-medium font-sans">
                         Payment Links
-                      </p>
-                    </Link>
-
-                    <Separator className="w-full my-2" />
-
-                    <Link
-                      href="/dashboard/settings"
-                      className={cn(
-                        "flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-brand/10 hover:text-brand",
-                        pathname?.includes("/dashboard/settings") &&
-                          "bg-brand/10 text-brand"
-                      )}
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                      <p className="text-sm font-medium font-sans">
-                        Settings
                       </p>
                     </Link>
                   </div>
