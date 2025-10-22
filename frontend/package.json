@@ -20,6 +20,7 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/supabase-js": "^2.76.1",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -32,8 +33,10 @@
     "react": "19.1.0",
     "react-day-picker": "^9.11.1",
     "react-dom": "19.1.0",
+    "react-ga4": "^2.1.0",
     "react-qr-code": "^2.0.18",
     "recharts": "^3.3.0",
+    "resend": "^6.2.2",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.8"
   },
