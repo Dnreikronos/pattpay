@@ -115,3 +115,27 @@ pub struct ApproveDelegate<'info> {
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
+
+#[derive(Accounts)]
+#[instruction(subscription_id: String, amount: u64)]
+pub struct ChargeSubscription<'info> {
+    #[account (
+        mut,
+        seeds = [b"delegate_pda", subscription_id.as_bytes(), delegate_approval.payer.as_ref()],
+        bump = delegate_approval.bump
+    )]
+    pub delegate_approval: Account<'info, DelegateApproval>,
+
+    // CHECK: PDA with delegate authority
+    #[account(seeds = [b"delegate_pda"], bump)]
+    pub delegate_pda: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    pub payer_token_account: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub receiver_token_account: Account<'info, TokenAccount>,
+
+    pub backend: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+}
