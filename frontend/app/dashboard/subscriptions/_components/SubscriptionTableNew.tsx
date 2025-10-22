@@ -11,6 +11,7 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
+  OnChangeFn,
 } from '@tanstack/react-table'
 import { ArrowUpDown, Copy, Check, MoreHorizontal, Eye, Ban } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -34,7 +35,7 @@ interface SubscriptionTableProps {
   loading?: boolean
   onRowClick?: (id: string) => void
   columnVisibility?: VisibilityState
-  onColumnVisibilityChange?: (visibility: VisibilityState) => void
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>
 }
 
 const getStatusColor = (status: Subscription['status']) => {

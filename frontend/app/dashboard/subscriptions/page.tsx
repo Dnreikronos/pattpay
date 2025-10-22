@@ -105,7 +105,6 @@ export default function SubscriptionsPage() {
         <StatCard
           title="ARR (Annual)"
           value={loading ? "..." : formatCurrency(stats.arrUSD)}
-          trend={stats.arrTrend}
           icon="/person3.png"
           accentColor="#818CF8"
         />

@@ -88,6 +88,7 @@ export function SubscriptionFilters({ filters, onFiltersChange }: SubscriptionFi
     'last-7-days': 'Last 7 days',
     'last-30-days': 'Last 30 days',
     'last-90-days': 'Last 90 days',
+    'custom': 'Custom range',
   }
 
   const tokenLabels: Record<string, string> = {

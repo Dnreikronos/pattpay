@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const transactionId = searchParams.get("tx") || "N/A";
   const amount = searchParams.get("amount") || "0.00";
@@ -163,5 +164,23 @@ export default function CheckoutSuccessPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center space-y-8">
+          <div className="mx-auto w-20 h-20 bg-muted/20 rounded-full animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-8 bg-muted/20 rounded w-64 mx-auto animate-pulse" />
+            <div className="h-4 bg-muted/20 rounded w-96 mx-auto animate-pulse" />
+          </div>
+        </div>
+      </div>
+    }>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }
