@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Check, Search as SearchIcon, CheckCircle2, Calendar, ArrowLeft } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { PaymentFilters as Filters, PaymentStatus } from '@/types/payment'
-import { SearchFilterBar } from '@/components/shared/filters/SearchFilterBar'
 import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -79,6 +78,7 @@ export function PaymentFilters({ filters, onFiltersChange }: PaymentFiltersProps
     'last-7-days': 'Last 7 days',
     'last-30-days': 'Last 30 days',
     'last-90-days': 'Last 90 days',
+    'custom': 'Custom range',
   }
 
   // Build custom filter chips
@@ -193,7 +193,13 @@ export function PaymentFilters({ filters, onFiltersChange }: PaymentFiltersProps
   }
 
   // Category items
-  const CategoryItem = ({ label, description, icon, activeCount, onClick }: any) => (
+  const CategoryItem = ({ label, description, icon, activeCount, onClick }: {
+    label: string
+    description: string
+    icon: React.ReactNode
+    activeCount?: number
+    onClick: () => void
+  }) => (
     <button
       onClick={onClick}
       className="group flex w-full cursor-pointer items-center gap-3 rounded-lg border-2 border-border px-4 py-3 text-left transition-all hover:border-brand/30 hover:bg-muted/20"
