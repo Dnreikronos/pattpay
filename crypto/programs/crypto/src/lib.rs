@@ -42,7 +42,7 @@ pub mod crypto {
     }
 
     pub fn charge_subscription(
-        ctx: Context<CharSubscription>,
+        ctx: Context<ChargeSubscription>,
         subscription_id: String,
         amount: u64,
     ) -> Result<()> {
