@@ -41,5 +41,42 @@ pub mod crypto {
         Ok(())
     }
 
-#[derive(Accounts)]
-pub struct Initialize {}
+    pub fn charge_subscription(
+        ctx: Context<CharSubscription>,
+        subscription_id: String,
+        amount: u64,
+    ) -> Result<()> {
+        require!(
+            ctx.accounts.backend.key() == AUTHORIZED_BACKEND,
+            ErrorCode::Unauthorized
+        );
+
+        let delegate_approva = &mut ctx.accounts.delegate_approval;
+
+        require!(
+            delegate_approval.spent_amout + amount <= delegate_approval.approved_amount,
+            ErrorCode::InsufficientAllowance
+        );
+
+        let seeds = &[b"delegate_pda", &[delegate_approval.bump]];
+        let signer = &[seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.payer_token_account.to_account_info(),
+            to: ctx.accounts.receiver_token_account.to_account_info(),
+            authority: ctx.accounts.delegate_pda.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+        token::transfer(cpi_ctx, amount)?;
+
+        delegate_approval.spent_amout += amount;
+
+        Ok(())
+    }
+
+    pub fn revoke_delegate(ctx: Context<RevokeDelegate>, _subscription_id: String) -> Result<()> {
+        // Handled by closing accounts and payer can revoke SPL approval separely
+        Ok(())
+    }
+}
