@@ -80,3 +80,38 @@ pub mod crypto {
         Ok(())
     }
 }
+
+#[derive(Accounts)]
+#[instruction(subscription_id: String, approved_amout: u64)]
+pub struct ApproveDelegate<'info> {
+    #[account (
+         init,
+         payer = payer,
+         space = 8 + DelegateApproval::INIT_SPACE,
+         seeds = [b"delegate_pda", subscription_id.as_bytes(), payer.key().as_ref()],
+         bump
+    )]
+    pub delegate_approval: Account<'info, DelegateApproval>,
+
+    // CHECK: PDA that will have delegate authority
+    #[account(seeds = [b"delegate_pda"], bump)]
+    pub delegate_pda: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    // CHECK: Receiver Wallet
+    pub receiver: UncheckedAccount<'info>,
+
+    #[account (
+        mut,
+        constraint = payer_token_account_owner = payer.key(),
+        constraint = payer_token_account_mint = token_mint.key(),
+    )]
+    pub receiver_token_account: Account<'info, TokenAccount>,
+
+    pub token_mint: UncheckedAccount<'info>,
+
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
