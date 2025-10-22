@@ -75,12 +75,6 @@ export function LinkFilters({ filters, onFiltersChange }: LinkFiltersProps) {
     inactive: <CheckCircle2 className="h-3 w-3" />,
   }
 
-  const typeLabels = {
-    recurring: 'Recurring',
-    'one-time': 'One-time',
-    all: 'All Types',
-  }
-
   // Build custom filter chips
   const renderFilterChips = () => {
     const hasChips =
@@ -196,7 +190,13 @@ export function LinkFilters({ filters, onFiltersChange }: LinkFiltersProps) {
   }
 
   // Category items
-  const CategoryItem = ({ label, description, icon, activeCount, onClick }: any) => (
+  const CategoryItem = ({ label, description, icon, activeCount, onClick }: {
+    label: string
+    description: string
+    icon: React.ReactNode
+    activeCount?: number
+    onClick: () => void
+  }) => (
     <button
       onClick={onClick}
       className="group flex w-full cursor-pointer items-center gap-3 rounded-lg border-2 border-border px-4 py-3 text-left transition-all hover:border-brand/30 hover:bg-muted/20"
