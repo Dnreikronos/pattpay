@@ -4,8 +4,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import PixelClouds from "./components/PixelClouds";
-import PixelButton from "./components/PixelButton";
-import CardShowcase from "../components/sections/CardShowcase";
+import CardShowcase from "@/components/sections/CardShowcase";
+import FAQ from "@/components/sections/FAQ";
+import WaitlistForm from "@/components/waitlist/WaitlistForm";
 
 export default function Home() {
   const imageRef = useRef<HTMLDivElement>(null);
@@ -45,30 +46,12 @@ export default function Home() {
                 className="font-mono text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-3xl mx-auto px-4"
               >
                 Automate payments between creators and Web3 businesses with zero intermediaries.
-                Set it once, and let smart contracts handle the rest — transparent, fast, and secure.
+                Set it once, and let smart contracts handle the rest transparent, fast, and secure.
               </motion.p>
 
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6"
-              >
-                <PixelButton variant="primary">
-                  Get Started
-                  <Image
-                    src="/arrow-right.svg"
-                    alt="arrow"
-                    width={16}
-                    height={16}
-                    className="inline-block ml-2 brightness-0 invert"
-                  />
-                </PixelButton>
-                <PixelButton variant="secondary">
-                  View Demo
-                </PixelButton>
-              </motion.div>
+              <div className="pt-6">
+                <WaitlistForm />
+              </div>
             </div>
 
             <motion.div
@@ -127,8 +110,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Benefits Showcase - horizontal scroll */}
       <CardShowcase />
+
+      <FAQ />
     </main>
   );
 }
