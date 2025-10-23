@@ -139,3 +139,22 @@ pub struct ChargeSubscription<'info> {
     pub backend: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
+
+#[derive(accounts)]
+#[instruction(subscription_id: String)]
+pub struct RevokeDelegate<'info> {
+    #[account (
+        mut,
+        seeds = [b"delegate", subscription_id.as_bytes(), payer.key().as_ref()],
+        bump = delegate_approval.bump
+        close = payer
+    )]
+    pub delegate_approval: Account<'info, DelegateApproval>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct DelegateApproval {}
