@@ -1,5 +1,6 @@
 [toolchain]
 package_manager = "yarn"
+solana_version = "2.3.13"
 
 [features]
 resolution = true
