@@ -83,6 +83,8 @@ The visual universe of PattPay is designed to materialize the digital economy in
 - **Build Tool**: Turbopack (enabled for dev and build)
 - **Package Manager**: pnpm (lock file present)
 - **Fonts**: DM Mono and Press Start 2P from Google Fonts
+- **Data Fetching**: TanStack Query (React Query) - **REQUIRED for ALL API calls**
+- **State Management**: Zustand - **ONLY for local/UI state, NOT for API calls**
 
 ## Development Commands
 
@@ -108,6 +110,86 @@ pnpm add <package>    # Add a new dependency
 - **Root Layout**: Located at `app/layout.tsx` - defines the global HTML structure and includes font configuration
 - **Global Styles**: `app/globals.css` contains TailwindCSS directives and global CSS
 - **Path Aliases**: `@/*` maps to the root directory (configured in `tsconfig.json`)
+
+### Data Fetching & State Management Rules
+
+**CRITICAL: TanStack Query is REQUIRED for ALL API interactions**
+
+1. **TanStack Query (React Query)** - Use for ALL server state:
+   - ✅ **Mutations**: `useMutation` for POST/PUT/DELETE operations (signin, signup, create, update, delete)
+   - ✅ **Queries**: `useQuery` for GET operations (fetching user data, lists, details)
+   - ✅ **Benefits**: Automatic caching, background refetching, optimistic updates, request deduplication
+   - ✅ **Pattern**: Create custom hooks in `lib/hooks/` that wrap TanStack Query hooks
+
+2. **Zustand** - Use ONLY for complex client/UI state:
+   - ✅ **Local UI state**: modals open/closed, filters, sidebar state, UI preferences
+   - ✅ **When to use**: Multi-component state that needs global access and updates
+   - ❌ **NEVER use for API calls**: API logic belongs in TanStack Query, not Zustand
+   - ❌ **Don't use for simple state**: Use React useState for component-local state
+
+3. **localStorage** - Use for simple persistence:
+   - ✅ **Tokens**: JWT tokens, API keys
+   - ✅ **Simple preferences**: Theme, language, last visited page
+   - ✅ **Pattern**: Create utility functions in `lib/utils/` (e.g., `TokenStorage`)
+
+4. **Code Organization**:
+   ```
+   lib/
+   ├── api/              # Pure API functions (fetch calls)
+   │   └── auth.ts       # authApi.signin(), authApi.signup(), etc.
+   ├── hooks/            # Custom hooks using TanStack Query
+   │   ├── useAuth.ts    # Main auth hook (TanStack Query + localStorage)
+   │   ├── useAuthMutations.ts  # useMutation hooks for signin/signup
+   │   └── useAuthQuery.ts      # useQuery hooks for getMe
+   ├── stores/           # Zustand stores (complex UI state only)
+   │   └── filter-store.ts # Example: filters with multiple fields
+   ├── utils/            # Utility functions
+   │   ├── token.ts      # Token storage (localStorage wrapper)
+   │   └── validation.ts # Zod schemas
+   └── providers/        # React context providers
+       └── query-provider.tsx  # QueryClientProvider wrapper
+   ```
+
+5. **Example Patterns**:
+   ```typescript
+   // ✅ CORRECT - API layer
+   // lib/api/auth.ts - Pure API function
+   export const authApi = {
+     signin: async (data) => fetch(...).then(r => r.json())
+   }
+
+   // ✅ CORRECT - Token storage
+   // lib/utils/token.ts
+   export const TokenStorage = {
+     get: () => localStorage.getItem('token'),
+     set: (token) => localStorage.setItem('token', token),
+     remove: () => localStorage.removeItem('token')
+   }
+
+   // ✅ CORRECT - TanStack Query hook
+   // lib/hooks/useAuthMutations.ts
+   export const useSignin = () => {
+     return useMutation({
+       mutationFn: authApi.signin,
+       onSuccess: (data) => TokenStorage.set(data.token)
+     })
+   }
+
+   // ✅ CORRECT - Zustand for complex UI state
+   // lib/stores/filter-store.ts
+   export const useFilterStore = create((set) => ({
+     filters: { status: 'all', date: null, category: [] },
+     setFilter: (key, value) => set((state) => ({
+       filters: { ...state.filters, [key]: value }
+     }))
+   }))
+
+   // ❌ WRONG - Never do this
+   // lib/stores/auth-store.ts
+   signin: async (email, password) => {
+     const response = await fetch(...) // ❌ No API calls in Zustand!
+   }
+   ```
 
 ### Brand Assets
 - **Logo**: `public/logo.svg` - Official pattpay logo (icon only)
