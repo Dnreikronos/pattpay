@@ -40,7 +40,9 @@ export const signupController = async (
         name: validatedData.name,
         email: validatedData.email,
         passwordHash,
-        description: validatedData.description,
+        ...(validatedData.description && {
+          description: validatedData.description,
+        }),
         authMethod: AuthMethod.EMAIL_PASSWORD,
         walletAddress: validatedData.walletAddress,
         tokenAccountUSDT: validatedData.tokenAccountUSDT,

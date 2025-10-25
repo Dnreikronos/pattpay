@@ -15,6 +15,7 @@ const envSchema = z.object({
     .default("development"),
   PORT: z.string().default("3000"),
   FRONTEND_URL: z.string().url("FRONTEND_URL must be a valid URL"),
+  SOLANA_NETWORK: z.enum(["mainnet", "devnet"]).default("mainnet"),
 });
 
 // Validate and parse environment variables
