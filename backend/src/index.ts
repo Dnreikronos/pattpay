@@ -3,6 +3,7 @@ import fastifyJwt from "@fastify/jwt";
 import Fastify from "fastify";
 import { config } from "./config.js";
 import { authRoutes } from "./routes/auth.routes.js";
+import { planRoutes } from "./routes/plan.routes.js";
 
 const fastify = Fastify({
   logger: {
@@ -36,6 +37,7 @@ const buildServer = async () => {
   });
 
   await fastify.register(authRoutes, { prefix: "/api/auth" });
+  await fastify.register(planRoutes, { prefix: "/api/links" });
 
   fastify.get("/health", async () => {
     return { status: "ok", timestamp: new Date().toISOString() };

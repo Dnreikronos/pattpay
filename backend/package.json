@@ -7,7 +7,11 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "compose:up": "docker compose up -d",
-    "compose:down": "docker compose down"
+    "compose:down": "docker compose down",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +28,11 @@
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
+    "@vitest/coverage-v8": "^4.0.2",
+    "@vitest/ui": "^4.0.2",
     "prisma": "^6.17.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.2"
   }
 }
