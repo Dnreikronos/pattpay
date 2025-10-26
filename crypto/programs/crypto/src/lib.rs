@@ -1,12 +1,12 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Approve, Token, TokenAccount};
+use anchor_spl::token::{self, Token};
 
 declare_id!("8uswUaDvewbwKHkXF9j1RTuGXujbM2Bj3Wd7Tzzsd34X");
 
+const AUTHORIZED_BACKEND: Pubkey = pubkey!("11111111111111111111111111111111");
+
 #[program]
 pub mod crypto {
-    use anchor_lang::context;
-
     use super::*;
 
     pub fn approve_delegate(
@@ -22,21 +22,22 @@ pub mod crypto {
         delegate_approval.payer_token_account = ctx.accounts.payer_token_account.key();
         delegate_approval.receiver_token_account = ctx.accounts.receiver_token_account.key();
         delegate_approval.approved_amount = approved_amount;
-        delegate_approval.spent_money = 0;
+        delegate_approval.spent_amount = 0;
         delegate_approval.subscription_id = subscription_id;
         delegate_approval.created_at = Clock::get()?.unix_timestamp;
         delegate_approval.bump = ctx.bumps.delegate_approval;
 
-        // Delegate token authority to program PDA
-        let cpi_accounts = Approve {
-            to: ctx.accounts.payer_token_account.to_account_info(),
-            delegate: ctx.accounts.delegate_pda.to_account_info(),
-            authority: ctx.accounts.payer.to_account_info(),
-        };
-
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token::approve(cpi_ctx, approved_amount)?;
+        token::approve(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                token::Approve {
+                    to: ctx.accounts.payer_token_account.to_account_info(),
+                    delegate: ctx.accounts.delegate_pda.to_account_info(),
+                    authority: ctx.accounts.payer.to_account_info(),
+                },
+            ),
+            approved_amount,
+        )?;
 
         Ok(())
     }
@@ -51,65 +52,69 @@ pub mod crypto {
             ErrorCode::Unauthorized
         );
 
-        let delegate_approva = &mut ctx.accounts.delegate_approval;
+        let delegate_approval = &mut ctx.accounts.delegate_approval;
 
         require!(
-            delegate_approval.spent_amout + amount <= delegate_approval.approved_amount,
+            delegate_approval.spent_amount + amount <= delegate_approval.approved_amount,
             ErrorCode::InsufficientAllowance
         );
 
-        let seeds = &[b"delegate_pda", &[delegate_approval.bump]];
-        let signer = &[seeds[..]];
+        let seeds = &[b"delegate_pda".as_ref(), &[delegate_approval.bump]];
+        let signer = &[&seeds[..]];
 
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.payer_token_account.to_account_info(),
-            to: ctx.accounts.receiver_token_account.to_account_info(),
-            authority: ctx.accounts.delegate_pda.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-        token::transfer(cpi_ctx, amount)?;
+        token::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                token::Transfer {
+                    from: ctx.accounts.payer_token_account.to_account_info(),
+                    to: ctx.accounts.receiver_token_account.to_account_info(),
+                    authority: ctx.accounts.delegate_pda.to_account_info(),
+                },
+                signer,
+            ),
+            amount,
+        )?;
 
-        delegate_approval.spent_amout += amount;
+        delegate_approval.spent_amount += amount;
 
         Ok(())
     }
 
-    pub fn revoke_delegate(ctx: Context<RevokeDelegate>, _subscription_id: String) -> Result<()> {
-        // Handled by closing accounts and payer can revoke SPL approval separely
+    pub fn revoke_delegate(_ctx: Context<RevokeDelegate>, _subscription_id: String) -> Result<()> {
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-#[instruction(subscription_id: String, approved_amout: u64)]
+#[instruction(subscription_id: String, approved_amount: u64)]
 pub struct ApproveDelegate<'info> {
-    #[account (
-         init,
-         payer = payer,
-         space = 8 + DelegateApproval::INIT_SPACE,
-         seeds = [b"delegate_pda", subscription_id.as_bytes(), payer.key().as_ref()],
-         bump
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + DelegateApproval::INIT_SPACE,
+        seeds = [b"delegate", subscription_id.as_bytes(), payer.key().as_ref()],
+        bump
     )]
     pub delegate_approval: Account<'info, DelegateApproval>,
 
-    // CHECK: PDA that will have delegate authority
     #[account(seeds = [b"delegate_pda"], bump)]
+    /// CHECK: PDA that will have delegate authority
     pub delegate_pda: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    // CHECK: Receiver Wallet
+    /// CHECK: Receiver wallet
     pub receiver: UncheckedAccount<'info>,
 
-    #[account (
-        mut,
-        constraint = payer_token_account_owner = payer.key(),
-        constraint = payer_token_account_mint = token_mint.key(),
-    )]
-    pub receiver_token_account: Account<'info, TokenAccount>,
+    /// CHECK: This is the payer's token account
+    #[account(mut)]
+    pub payer_token_account: UncheckedAccount<'info>,
 
+    /// CHECK: This is the receiver's token account  
+    pub receiver_token_account: UncheckedAccount<'info>,
+
+    /// CHECK: Token mint
     pub token_mint: UncheckedAccount<'info>,
 
     pub token_program: Program<'info, Token>,
@@ -119,34 +124,36 @@ pub struct ApproveDelegate<'info> {
 #[derive(Accounts)]
 #[instruction(subscription_id: String, amount: u64)]
 pub struct ChargeSubscription<'info> {
-    #[account (
+    #[account(
         mut,
-        seeds = [b"delegate_pda", subscription_id.as_bytes(), delegate_approval.payer.as_ref()],
+        seeds = [b"delegate", subscription_id.as_bytes(), delegate_approval.payer.as_ref()],
         bump = delegate_approval.bump
     )]
     pub delegate_approval: Account<'info, DelegateApproval>,
 
-    // CHECK: PDA with delegate authority
     #[account(seeds = [b"delegate_pda"], bump)]
+    /// CHECK: PDA with delegate authority
     pub delegate_pda: UncheckedAccount<'info>,
 
+    /// CHECK: This is the payer's token account
     #[account(mut)]
-    pub payer_token_account: Account<'info, TokenAccount>,
+    pub payer_token_account: UncheckedAccount<'info>,
 
+    /// CHECK: This is the receiver's token account
     #[account(mut)]
-    pub receiver_token_account: Account<'info, TokenAccount>,
+    pub receiver_token_account: UncheckedAccount<'info>,
 
     pub backend: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
 
-#[derive(accounts)]
+#[derive(Accounts)]
 #[instruction(subscription_id: String)]
 pub struct RevokeDelegate<'info> {
-    #[account (
+    #[account(
         mut,
         seeds = [b"delegate", subscription_id.as_bytes(), payer.key().as_ref()],
-        bump = delegate_approval.bump
+        bump = delegate_approval.bump,
         close = payer
     )]
     pub delegate_approval: Account<'info, DelegateApproval>,
@@ -157,4 +164,24 @@ pub struct RevokeDelegate<'info> {
 
 #[account]
 #[derive(InitSpace)]
-pub struct DelegateApproval {}
+pub struct DelegateApproval {
+    pub payer: Pubkey,
+    pub receiver: Pubkey,
+    pub token_mint: Pubkey,
+    pub payer_token_account: Pubkey,
+    pub receiver_token_account: Pubkey,
+    pub approved_amount: u64,
+    pub spent_amount: u64,
+    #[max_len(36)]
+    pub subscription_id: String,
+    pub created_at: i64,
+    pub bump: u8,
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Unauthorized: only backend can charge")]
+    Unauthorized,
+    #[msg("Insufficient allowance")]
+    InsufficientAllowance,
+}
