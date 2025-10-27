@@ -1,8 +1,11 @@
 import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
 import { config } from "./config.js";
 import { authRoutes } from "./routes/auth.routes.js";
+import { planRoutes } from "./routes/plan.routes.js";
 
 const fastify = Fastify({
   logger: {
@@ -11,6 +14,40 @@ const fastify = Fastify({
 });
 
 const buildServer = async () => {
+  // Swagger Documentation
+  await fastify.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: "PattPay API",
+        description: "Solana-based payment and subscription platform API",
+        version: "1.0.0",
+      },
+      servers: [
+        {
+          url: `http://localhost:${config.PORT}`,
+          description: "Development",
+        },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
+      },
+    },
+  });
+
+  await fastify.register(fastifySwaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: true,
+    },
+  });
+
   await fastify.register(fastifyCors, {
     origin: config.FRONTEND_URL,
     credentials: true,
@@ -36,6 +73,7 @@ const buildServer = async () => {
   });
 
   await fastify.register(authRoutes, { prefix: "/api/auth" });
+  await fastify.register(planRoutes, { prefix: "/api/links" });
 
   fastify.get("/health", async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
