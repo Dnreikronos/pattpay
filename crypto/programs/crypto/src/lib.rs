@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token};
 
-declare_id!("8uswUaDvewbwKHkXF9j1RTuGXujbM2Bj3Wd7Tzzsd34X");
+declare_id!("BrBYcBHWA7LkqDfMGQucbs3uLS7DTGKTTzwqYiBVf9sH");
 
 const AUTHORIZED_BACKEND: Pubkey = pubkey!("11111111111111111111111111111111");
 
