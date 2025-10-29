@@ -1,9 +1,12 @@
-name: Deploy Backend to Railway
+name: Deploy Backend API to Railway
 
 on:
   push:
     branches: [main]
-    paths: ["backend/**"]
+    paths:
+      - "backend/**"
+      - "!backend/src/scheduler.ts"
+      - "!backend/src/processor.ts"
   workflow_dispatch:
 
 env:
