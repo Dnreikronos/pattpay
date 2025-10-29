@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AuthMethod {
+  EMAIL_PASSWORD
+  SOLANA_WALLET
+}
+
+enum LinkStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model Payer {
   id            String   @id @default(uuid()) @db.Uuid
   walletAddress String   @unique @map("wallet_address")
@@ -38,7 +48,7 @@ model Subscription {
   delegateTxSignature String?            @map("delegate_tx_signature")
   delegateApprovedAt  DateTime?          @map("delegate_approved_at")
   tokenDecimals       Int                @map("token_decimals")
-  totalApprovedAmount Decimal            @map("total_approved_amount")
+  totalApprovedAmount Decimal            @map("total_approved_amount") // plan.durationMonths * plan.planToken.price
   createdAt           DateTime           @default(now()) @map("created_at")
   updatedAt           DateTime           @updatedAt @map("updated_at")
 
@@ -47,38 +57,47 @@ model Subscription {
   payer Payer @relation(fields: [payerId], references: [id], onDelete: Cascade)
   plan  Plan  @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  relayerJobs RelayerJob[]
+  relayerJobs       RelayerJob[]
+  paymentExecutions PaymentExecution[]
 
   @@map("subscriptions")
 }
 
 model Plan {
-  id             String   @id @default(uuid()) @db.Uuid
-  receiverId     String   @map("receiver_id") @db.Uuid
-  name           String   @map("name")
-  description    String?  @map("description")
-  durationMonths Int      @map("duration_months")
-  periodSeconds  Int      @map("period_seconds")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id             String     @id @default(uuid()) @db.Uuid
+  receiverId     String     @map("receiver_id") @db.Uuid
+  name           String     @map("name")
+  description    String?    @map("description")
+  isRecurring    Boolean    @default(false) @map("is_recurring")
+  status         LinkStatus @default(ACTIVE)
+  redirectUrl    String?    @map("redirect_url")
+  expiresAt      DateTime?  @map("expires_at")
+  durationMonths Int?       @map("duration_months")
+  periodSeconds  Int?       @map("period_seconds")
 
-  receiver Receiver @relation(fields: [receiverId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  subscriptions Subscription[]
-  planTokens    PlanToken[]
+  receiver          Receiver           @relation(fields: [receiverId], references: [id])
+  subscriptions     Subscription[]
+  planTokens        PlanToken[]
+  paymentExecutions PaymentExecution[]
 
   @@map("plans")
 }
 
 model Receiver {
-  id               String   @id @default(uuid()) @db.Uuid
-  walletAddress    String   @unique @map("wallet_address")
-  name             String   @map("name")
-  description      String?  @map("description")
-  tokenAccountUSDT String   @map("token_account_usdt")
-  tokenAccountUSDC String   @map("token_account_usdc")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id               String     @id @default(uuid()) @db.Uuid
+  name             String     @map("name")
+  authMethod       AuthMethod @map("auth_method")
+  email            String?    @unique
+  passwordHash     String?    @map("password_hash")
+  walletAddress    String     @unique @map("wallet_address")
+  description      String?    @map("description")
+  tokenAccountUSDT String     @map("token_account_usdt")
+  tokenAccountUSDC String     @map("token_account_usdc")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
 
   plans Plan[]
 
@@ -88,6 +107,7 @@ model Receiver {
 model PlanToken {
   id            String   @id @default(uuid()) @db.Uuid
   planId        String   @db.Uuid
+  symbol        String   @map("symbol") // Token symbol (e.g., USDC, SOL)
   tokenDecimals Int      @map("token_decimals")
   tokenMint     String   @map("token_mint")
   price         Decimal  @map("price")
@@ -124,7 +144,8 @@ enum PaymentExecutionStatus {
 
 model PaymentExecution {
   id             String                 @id @default(uuid()) @db.Uuid
-  subscriptionId String                 @map("subscription_id") @db.Uuid
+  subscriptionId String?                @map("subscription_id") @db.Uuid
+  planId         String?                @map("plan_id") @db.Uuid
   txSignature    String                 @map("tx_signature")
   executedBy     String?                @map("executed_by")
   status         PaymentExecutionStatus
@@ -133,5 +154,9 @@ model PaymentExecution {
   tokenMint      String                 @map("token_mint")
   amount         Decimal                @map("amount")
 
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+  plan         Plan?         @relation(fields: [planId], references: [id])
+
+  @@index([planId])
   @@map("payment_executions")
 }

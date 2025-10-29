@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform, MotionValue, useMotionValue, useSpring } from 'framer-motion'
 import Image from 'next/image'
-import PixelClouds from '../../app/components/PixelClouds'
+import PixelClouds from '@/app/(home)/components/PixelClouds'
 
 interface BenefitCard {
   id: string
