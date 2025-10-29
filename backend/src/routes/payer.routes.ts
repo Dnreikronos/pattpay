@@ -66,3 +66,89 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: createPayer,
   });
 
+  // GET /api/payers - List all payers with pagination and search
+  fastify.get<{ Querystring: GetPayersQuery }>("/", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Payers"],
+      summary: "List all payers",
+      description:
+        "Get paginated list of payers with optional search by name, email, or wallet address. Includes subscription count for each payer.",
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: "object",
+        properties: {
+          page: {
+            type: "integer",
+            minimum: 1,
+            default: 1,
+            description: "Page number for pagination",
+          },
+          limit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+            description: "Number of items per page",
+          },
+          search: {
+            type: "string",
+            description:
+              "Search term to filter by name, email, or wallet address (case-insensitive)",
+          },
+        },
+      },
+      response: {
+        200: {
+          description: "List of payers with pagination metadata",
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              description: "Array of payer objects",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string", format: "uuid" },
+                  walletAddress: { type: "string" },
+                  name: { type: "string" },
+                  email: { type: "string" },
+                  createdAt: { type: "string", format: "date-time" },
+                  updatedAt: { type: "string", format: "date-time" },
+                  subscriptions: {
+                    type: "array",
+                    description: "List of active subscriptions",
+                    items: { type: "object" },
+                  },
+                },
+              },
+            },
+            meta: {
+              type: "object",
+              description: "Pagination metadata",
+              properties: {
+                page: {
+                  type: "integer",
+                  description: "Current page number",
+                },
+                limit: {
+                  type: "integer",
+                  description: "Items per page",
+                },
+                total: {
+                  type: "integer",
+                  description: "Total number of payers",
+                },
+                totalPages: {
+                  type: "integer",
+                  description: "Total number of pages",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    handler: getPayers,
+  });
+
