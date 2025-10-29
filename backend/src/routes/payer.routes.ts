@@ -204,3 +204,85 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: getPayer,
   });
 
+  // PUT /api/payers/:id - Update payer
+  fastify.put<{ Params: PayerIdParam; Body: UpdatePayerBody }>("/:id", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Payers"],
+      summary: "Update payer",
+      description:
+        "Update payer information. All fields are optional. Only provided fields will be updated.",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            description: "Payer ID to update",
+          },
+        },
+      },
+      body: {
+        type: "object",
+        properties: {
+          walletAddress: {
+            type: "string",
+            minLength: 1,
+            maxLength: 255,
+            description: "New wallet address (must be unique)",
+          },
+          name: {
+            type: "string",
+            minLength: 1,
+            maxLength: 255,
+            description: "Updated payer name",
+          },
+          email: {
+            type: "string",
+            format: "email",
+            description: "Updated email address",
+          },
+        },
+      },
+      response: {
+        200: {
+          description: "Payer updated successfully",
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            walletAddress: { type: "string" },
+            name: { type: "string" },
+            email: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: {
+              type: "string",
+              format: "date-time",
+              description: "Reflects the update time",
+            },
+          },
+        },
+        404: {
+          description: "Payer not found",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+        400: {
+          description: "Validation error or duplicate wallet address",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+    handler: updatePayer,
+  });
+
