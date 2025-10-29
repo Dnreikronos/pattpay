@@ -213,3 +213,45 @@ export const updatePayer = async (
   }
 };
 
+export const deletePayer = async (
+  request: FastifyRequest<{ Params: PayerIdParam }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = payerIdParamSchema.parse(request.params);
+
+    const existingPayer = await prisma.payer.findUnique({
+      where: { id: validatedParams.id },
+    });
+
+    if (!existingPayer) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payer not found",
+      });
+    }
+
+    await prisma.payer.delete({
+      where: { id: validatedParams.id },
+    });
+
+    return reply.code(204).send();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Invalid payer ID",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
