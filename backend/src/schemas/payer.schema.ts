@@ -16,3 +16,9 @@ export const updatePayerSchema = z.object({
 
 export type UpdatePayerBody = z.infer<typeof updatePayerSchema>;
 
+export const payerIdParamSchema = z.object({
+  id: z.string().uuid("Invalid payer ID format"),
+});
+
+export type PayerIdParam = z.infer<typeof payerIdParamSchema>;
+
