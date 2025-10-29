@@ -20,12 +20,25 @@ export const createPayer = async (
   try {
     const validatedData = createPayerSchema.parse(request.body);
 
+    const existing = await prisma.payer.findUnique({
+      where: { walletAddress: validatedData.walletAddress },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return reply.code(409).send({
+        statusCode: 409,
+        error: "Conflict",
+        message: "Wallet address already exists",
+      });
+    }
+
     const payer = await prisma.payer.create({
       data: {
         walletAddress: validatedData.walletAddress,
         name: validatedData.name,
         email: validatedData.email ?? null,
-      }
+      },
     });
 
     return reply.code(201).send(payer);
@@ -189,7 +202,9 @@ export const updatePayer = async (
           walletAddress: validatedData.walletAddress,
         }),
         ...(validatedData.name && { name: validatedData.name }),
-        ...(validatedData.email !== undefined && { email: validatedData.email }),
+        ...(validatedData.email !== undefined && {
+          email: validatedData.email,
+        }),
       },
     });
 
