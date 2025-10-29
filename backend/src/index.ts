@@ -5,6 +5,7 @@ import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
 import { config } from "./config.js";
 import { authRoutes } from "./routes/auth.routes.js";
+import { payerRoutes } from "./routes/payer.routes.js";
 import { planRoutes } from "./routes/plan.routes.js";
 
 const fastify = Fastify({
@@ -74,6 +75,7 @@ const buildServer = async () => {
 
   await fastify.register(authRoutes, { prefix: "/api/auth" });
   await fastify.register(planRoutes, { prefix: "/api/links" });
+  await fastify.register(payerRoutes, { prefix: "/api/payers" });
 
   fastify.get("/health", async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
