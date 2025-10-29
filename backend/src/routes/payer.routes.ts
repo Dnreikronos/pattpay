@@ -152,3 +152,55 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: getPayers,
   });
 
+  // GET /api/payers/:id - Get payer by ID
+  fastify.get<{ Params: PayerIdParam }>("/:id", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Payers"],
+      summary: "Get payer by ID",
+      description:
+        "Retrieve detailed information about a specific payer including all their subscriptions",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            description: "Unique payer ID",
+          },
+        },
+      },
+      response: {
+        200: {
+          description: "Payer details with subscriptions",
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            walletAddress: { type: "string" },
+            name: { type: "string" },
+            email: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+            subscriptions: {
+              type: "array",
+              description: "All subscriptions associated with this payer",
+              items: { type: "object" },
+            },
+          },
+        },
+        404: {
+          description: "Payer not found",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+    handler: getPayer,
+  });
+
