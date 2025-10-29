@@ -1,3 +1,18 @@
+import type { Prisma } from "@prisma/client";
+import { type FastifyReply, type FastifyRequest } from "fastify";
+import { z } from "zod";
+import { prisma } from "../db.js";
+import {
+  type CreatePayerBody,
+  createPayerSchema,
+  type GetPayersQuery,
+  getPayersQuerySchema,
+  type PayerIdParam,
+  payerIdParamSchema,
+  type UpdatePayerBody,
+  updatePayerSchema,
+} from "../schemas/payer.schema.js";
+
 export const createPayer = async (
   request: FastifyRequest<{ Body: CreatePayerBody }>,
   reply: FastifyReply
@@ -148,3 +163,53 @@ export const getPayer = async (
 };
 
 export const updatePayer = async (
+  request: FastifyRequest<{ Params: PayerIdParam; Body: UpdatePayerBody }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = payerIdParamSchema.parse(request.params);
+    const validatedData = updatePayerSchema.parse(request.body);
+
+    const existingPayer = await prisma.payer.findUnique({
+      where: { id: validatedParams.id },
+    });
+
+    if (!existingPayer) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payer not found",
+      });
+    }
+
+    const payer = await prisma.payer.update({
+      where: { id: validatedParams.id },
+      data: {
+        ...(validatedData.walletAddress && {
+          walletAddress: validatedData.walletAddress,
+        }),
+        ...(validatedData.name && { name: validatedData.name }),
+        ...(validatedData.email !== undefined && { email: validatedData.email }),
+      },
+    });
+
+    return reply.code(200).send(payer);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Validation failed",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
+
