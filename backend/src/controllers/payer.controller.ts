@@ -33,3 +33,77 @@ export const createPayer = async (
   }
 };
 
+export const getPayers = async (
+  request: FastifyRequest<{ Querystring: GetPayersQuery }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedQuery = getPayersQuerySchema.parse(request.query);
+
+    const where: Prisma.PayerWhereInput = {};
+
+    if (validatedQuery.search) {
+      where.OR = [
+        {
+          name: {
+            contains: validatedQuery.search,
+            mode: "insensitive",
+          },
+        },
+        {
+          email: {
+            contains: validatedQuery.search,
+            mode: "insensitive",
+          },
+        },
+        {
+          walletAddress: {
+            contains: validatedQuery.search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    const skip = (validatedQuery.page - 1) * validatedQuery.limit;
+    const take = validatedQuery.limit;
+
+    const [payers, total] = await Promise.all([
+      prisma.payer.findMany({
+        where,
+        skip,
+        take,
+        include: { subscriptions: true },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.payer.count({ where }),
+    ]);
+
+    return reply.code(200).send({
+      data: payers,
+      meta: {
+        page: validatedQuery.page,
+        limit: validatedQuery.limit,
+        total,
+        totalPages: Math.ceil(total / validatedQuery.limit),
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Invalid query parameters",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
+
