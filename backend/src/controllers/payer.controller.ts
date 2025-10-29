@@ -107,3 +107,44 @@ export const getPayers = async (
   }
 };
 
+export const getPayer = async (
+  request: FastifyRequest<{ Params: PayerIdParam }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = payerIdParamSchema.parse(request.params);
+
+    const payer = await prisma.payer.findUnique({
+      where: { id: validatedParams.id },
+      include: { subscriptions: true },
+    });
+
+    if (!payer) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payer not found",
+      });
+    }
+
+    return reply.code(200).send(payer);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Invalid payer ID",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
+
+export const updatePayer = async (
