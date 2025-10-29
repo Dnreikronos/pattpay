@@ -126,7 +126,13 @@ const start = async () => {
     await buildServer();
     const port = parseInt(config.PORT);
     await fastify.listen({ port, host: "0.0.0.0" });
-    console.log(`🚀 Server is running on http://localhost:${port}`);
+
+    const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN;
+    if (railwayUrl) {
+      console.log(`🚀 Server is running on ${railwayUrl}`);
+    } else {
+      console.log(`🚀 Server is running on http://localhost:${port}`);
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
