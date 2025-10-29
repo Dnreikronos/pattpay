@@ -131,6 +131,8 @@ model RelayerJob {
   nextRetryAt    DateTime         @map("next_retry_at")
   executedAt     DateTime?        @map("executed_at")
   status         RelayerJobStatus @default(PENDING)
+  retryCount     Int              @default(0) @map("retry_count")
+  errorMessage   String?          @map("error_message")
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
