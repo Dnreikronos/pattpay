@@ -1,3 +1,18 @@
+import { type FastifyInstance } from "fastify";
+import {
+  createPayer,
+  getPayers,
+  getPayer,
+  updatePayer,
+  deletePayer,
+} from "../controllers/payer.controller.js";
+import type {
+  CreatePayerBody,
+  UpdatePayerBody,
+  PayerIdParam,
+  GetPayersQuery,
+} from "../schemas/payer.schema.js";
+
 export async function payerRoutes(fastify: FastifyInstance) {
   // POST /api/payers - Create a new payer
   fastify.post<{ Body: CreatePayerBody }>("/", {
@@ -286,3 +301,42 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: updatePayer,
   });
 
+  // DELETE /api/payers/:id - Delete payer
+  fastify.delete<{ Params: PayerIdParam }>("/:id", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Payers"],
+      summary: "Delete payer",
+      description:
+        "Permanently delete a payer and all associated subscriptions. This action cannot be undone due to CASCADE delete.",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            description: "Payer ID to delete",
+          },
+        },
+      },
+      response: {
+        204: {
+          description: "Payer deleted successfully (no content)",
+          type: "null",
+        },
+        404: {
+          description: "Payer not found",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+    handler: deletePayer,
+  });
+}
