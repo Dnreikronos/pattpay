@@ -36,4 +36,4 @@ jobs:
       - name: Deploy Processor to Railway
         run: |
           cd backend
-          railway up --service processor --detach
+          railway up --service processor

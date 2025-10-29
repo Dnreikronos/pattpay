@@ -36,4 +36,4 @@ jobs:
       - name: Deploy Scheduler to Railway
         run: |
           cd backend
-          railway up --service scheduler --detach
+          railway up --service scheduler
