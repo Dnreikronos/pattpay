@@ -8,3 +8,11 @@ export const createPayerSchema = z.object({
 
 export type CreatePayerBody = z.infer<typeof createPayerSchema>;
 
+export const updatePayerSchema = z.object({
+  walletAddress: z.string().min(1).max(255).optional(),
+  name: z.string().min(1).max(255).optional(),
+  email: z.string().email("Invalid email").optional(),
+});
+
+export type UpdatePayerBody = z.infer<typeof updatePayerSchema>;
+
