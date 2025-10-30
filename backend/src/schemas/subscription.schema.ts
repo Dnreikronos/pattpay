@@ -33,3 +33,47 @@ export const createSubscriptionSchema = z.object({
   delegateApprovedAt: z.string().datetime("Invalid datetime"),
 });
 
+export type CreateSubscriptionBody = z.infer<typeof createSubscriptionSchema>;
+
+export const getSubscriptionsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  status: z.enum(["ACTIVE", "CANCELLED", "EXPIRED", "all"]).default("all"),
+  planId: z.string().uuid().optional(),
+  tokenMint: z.string().optional(), // Filter by token type (USDC/USDT mint address)
+  dateFrom: z.coerce.date().optional(),
+  dateTo: z.coerce.date().optional(),
+  search: z.string().optional(), // Search by payer name, wallet address, or plan name
+});
+
+export type GetSubscriptionQuery = z.infer<typeof getSubscriptionsQuerySchema>;
+
+export const subscriptionIdParamSchema = z.object({
+  id: z.string().uuid("Invalid subscription ID"),
+});
+
+export type subscriptionIdParam = z.infer<typeof subscriptionIdParamSchema>;
+
+/**
+ * Schema for cancelling a subscription
+ *
+ * FRONTEND FLOW:
+ * 1. User clicks cancel subscription
+ * 2. Frontend calls the Solana contract's `revoke_delegate` instruction with:
+ *    - subscription_id: The subscription UUID
+ *    - payer: User's wallet (must be the original payer)
+ * 3. This closes the delegate_approval PDA and revokes authority
+ * 4. User signs the transaction
+ * 5. Frontend gets the transaction signature
+ * 6. Frontend calls DELETE /api/subscriptions/:id with the revoke signature
+ * 7. Backend marks subscription as CANCELLED
+ *
+ * CONTRACT INTERACTION:
+ * The revoke_delegate instruction closes the PDA, preventing any further charges
+ * The relayer will no longer be able to call charge_subscription for this subscription
+ */
+export const cancelSubscriptionSchema = z.object({
+  revokeTxSignature: z.string().min(1, "Revoke transaction signature required"), // Transaction hash from revoke_delegate
+});
+
+export type CancelSubscriptionBody = z.infer<typeof cancelSubscriptionSchema>;
