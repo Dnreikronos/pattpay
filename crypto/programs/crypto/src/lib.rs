@@ -3,7 +3,7 @@ use anchor_spl::token::{self, Token};
 
 declare_id!("BrBYcBHWA7LkqDfMGQucbs3uLS7DTGKTTzwqYiBVf9sH");
 
-const AUTHORIZED_BACKEND: Pubkey = pubkey!("11111111111111111111111111111111");
+const AUTHORIZED_BACKEND: Pubkey = pubkey!("9eGNzLdmUw6M84oo1H4iR8KMwxUnDHMMr6q85h69eKDH");
 
 #[program]
 pub mod crypto {
