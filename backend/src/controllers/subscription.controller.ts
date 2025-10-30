@@ -231,3 +231,48 @@ export const getSubscriptions = async (
   }
 };
 
+export const getSubscription = async (
+  request: FastifyRequest<{ Params: subscriptionIdParam }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = subscriptionIdParamSchema.parse(request.params);
+    const userId = request.user.userId;
+
+    const subscription = await prisma.subscription.findUnique({
+      where: { id: validatedParams.id },
+      include: {
+        plan: { include: { planTokens: true, receiver: true } },
+        payer: true,
+        paymentExecutions: { orderBy: { executedAt: "desc" }, take: 10 },
+      },
+    });
+
+    if (!subscription || subscription.plan.receiverId !== userId) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Subscription not found",
+      });
+    }
+
+    return reply.code(200).send(subscription);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Invalid subscription ID",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
+
