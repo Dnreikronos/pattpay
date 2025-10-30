@@ -7,3 +7,17 @@ CLAUDE.md
 
 # Test coverage
 coverage
+
+# TypeScript build output (compiled files alongside source)
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+*.d.ts.map
+
+# Root level build files
+/*.js
+/*.d.ts
+
+# But keep source type definitions
+!src/types/**/*.d.ts
