@@ -65,7 +65,7 @@ export function transformPlanToCheckoutLink(
     ...(usdcToken && { amountUSDC: parseFloat(usdcToken.price.toString()) }),
     ...(usdtToken && { amountUSDT: parseFloat(usdtToken.price.toString()) }),
     status,
-    url: `${frontendUrl}/payment/${plan.id}`,
+    url: `${frontendUrl}/checkout/${plan.id}`,
     isRecurring: plan.isRecurring,
     ...(plan.redirectUrl && { redirectUrl: plan.redirectUrl }),
     ...(plan.description && { description: plan.description }),
