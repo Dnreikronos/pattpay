@@ -1,8 +1,13 @@
 import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
 import { config } from "./config.js";
 import { authRoutes } from "./routes/auth.routes.js";
+import { payerRoutes } from "./routes/payer.routes.js";
+import { planRoutes } from "./routes/plan.routes.js";
+import { subscriptionRoutes } from "./routes/subscription.routes.js";
 
 const fastify = Fastify({
   logger: {
@@ -11,6 +16,40 @@ const fastify = Fastify({
 });
 
 const buildServer = async () => {
+  // Swagger Documentation
+  await fastify.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: "PattPay API",
+        description: "Solana-based payment and subscription platform API",
+        version: "1.0.0",
+      },
+      servers: [
+        {
+          url: `http://localhost:${config.PORT}`,
+          description: "Development",
+        },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
+      },
+    },
+  });
+
+  await fastify.register(fastifySwaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: true,
+    },
+  });
+
   await fastify.register(fastifyCors, {
     origin: config.FRONTEND_URL,
     credentials: true,
@@ -36,6 +75,9 @@ const buildServer = async () => {
   });
 
   await fastify.register(authRoutes, { prefix: "/api/auth" });
+  await fastify.register(planRoutes, { prefix: "/api/links" });
+  await fastify.register(payerRoutes, { prefix: "/api/payers" });
+  await fastify.register(subscriptionRoutes, { prefix: "/api/subscriptions" });
 
   fastify.get("/health", async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
@@ -88,7 +130,13 @@ const start = async () => {
     await buildServer();
     const port = parseInt(config.PORT);
     await fastify.listen({ port, host: "0.0.0.0" });
-    console.log(`🚀 Server is running on http://localhost:${port}`);
+
+    const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN;
+    if (railwayUrl) {
+      console.log(`🚀 Server is running on ${railwayUrl}`);
+    } else {
+      console.log(`🚀 Server is running on http://localhost:${port}`);
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
