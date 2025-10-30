@@ -27,13 +27,13 @@ const TOKEN_CONFIGS: Record<string, Record<string, TokenConfig>> = {
     USDT: {
       symbol: "USDT",
       name: "Tether USD (Devnet)",
-      mint: "DEVNET_USDT_MINT_PLACEHOLDER", // Replace with actual devnet USDT mint
+      mint: "EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS", // Devnet USDT
       decimals: 6,
     },
     USDC: {
       symbol: "USDC",
       name: "USD Coin (Devnet)",
-      mint: "DEVNET_USDC_MINT_PLACEHOLDER", // Replace with actual devnet USDC mint
+      mint: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", // Devnet USDC
       decimals: 6,
     },
   },

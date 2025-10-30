@@ -95,8 +95,8 @@ export const createPlanController = async (
       return { plan, tokens: createdTokens };
     });
 
-    // Generate payment link URL
-    const paymentUrl = `${process.env.FRONTEND_URL}/payment/${result.plan.id}`;
+    // Generate checkout link URL
+    const paymentUrl = `${process.env.FRONTEND_URL}/checkout/${result.plan.id}`;
 
     return reply.code(201).send({
       link: {

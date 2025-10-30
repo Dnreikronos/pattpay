@@ -6,7 +6,9 @@ import Fastify from "fastify";
 import { config } from "./config.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { payerRoutes } from "./routes/payer.routes.js";
+import { paymentExecutionRoutes } from "./routes/payment-execution.routes.js";
 import { planRoutes } from "./routes/plan.routes.js";
+import { subscribeRoutes } from "./routes/subscribe.routes.js";
 import { subscriptionRoutes } from "./routes/subscription.routes.js";
 
 const fastify = Fastify({
@@ -77,6 +79,8 @@ const buildServer = async () => {
   await fastify.register(authRoutes, { prefix: "/api/auth" });
   await fastify.register(planRoutes, { prefix: "/api/links" });
   await fastify.register(payerRoutes, { prefix: "/api/payers" });
+  await fastify.register(paymentExecutionRoutes, { prefix: "/api/payment-executions" });
+  await fastify.register(subscribeRoutes, { prefix: "/api/subscribe" });
   await fastify.register(subscriptionRoutes, { prefix: "/api/subscriptions" });
 
   fastify.get("/health", async () => {
