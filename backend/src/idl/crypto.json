@@ -1,0 +1,257 @@
+{
+  "address": "BrBYcBHWA7LkqDfMGQucbs3uLS7DTGKTTzwqYiBVf9sH",
+  "metadata": {
+    "name": "crypto",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "approve_delegate",
+      "discriminator": [68, 6, 248, 64, 195, 222, 182, 223],
+      "accounts": [
+        {
+          "name": "delegate_approval",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 101, 108, 101, 103, 97, 116, 101]
+              },
+              {
+                "kind": "arg",
+                "path": "subscription_id"
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "delegate_pda",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100, 101, 108, 101, 103, 97, 116, 101, 95, 112, 100, 97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "receiver"
+        },
+        {
+          "name": "payer_token_account",
+          "writable": true
+        },
+        {
+          "name": "receiver_token_account"
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "subscription_id",
+          "type": "string"
+        },
+        {
+          "name": "approved_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "charge_subscription",
+      "discriminator": [121, 52, 210, 23, 3, 68, 86, 194],
+      "accounts": [
+        {
+          "name": "delegate_approval",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 101, 108, 101, 103, 97, 116, 101]
+              },
+              {
+                "kind": "arg",
+                "path": "subscription_id"
+              },
+              {
+                "kind": "account",
+                "path": "delegate_approval.payer",
+                "account": "DelegateApproval"
+              }
+            ]
+          }
+        },
+        {
+          "name": "delegate_pda",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100, 101, 108, 101, 103, 97, 116, 101, 95, 112, 100, 97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer_token_account",
+          "writable": true
+        },
+        {
+          "name": "receiver_token_account",
+          "writable": true
+        },
+        {
+          "name": "backend",
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "subscription_id",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "revoke_delegate",
+      "discriminator": [142, 66, 98, 126, 102, 60, 92, 163],
+      "accounts": [
+        {
+          "name": "delegate_approval",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 101, 108, 101, 103, 97, 116, 101]
+              },
+              {
+                "kind": "arg",
+                "path": "subscription_id"
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "_subscription_id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "DelegateApproval",
+      "discriminator": [41, 170, 124, 42, 55, 141, 43, 120]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: only backend can charge"
+    },
+    {
+      "code": 6001,
+      "name": "InsufficientAllowance",
+      "msg": "Insufficient allowance"
+    }
+  ],
+  "types": [
+    {
+      "name": "DelegateApproval",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "receiver",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "payer_token_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "receiver_token_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "approved_amount",
+            "type": "u64"
+          },
+          {
+            "name": "spent_amount",
+            "type": "u64"
+          },
+          {
+            "name": "subscription_id",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
