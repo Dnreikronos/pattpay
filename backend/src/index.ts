@@ -7,6 +7,7 @@ import { config } from "./config.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { payerRoutes } from "./routes/payer.routes.js";
 import { planRoutes } from "./routes/plan.routes.js";
+import { subscriptionRoutes } from "./routes/subscription.routes.js";
 
 const fastify = Fastify({
   logger: {
@@ -76,6 +77,7 @@ const buildServer = async () => {
   await fastify.register(authRoutes, { prefix: "/api/auth" });
   await fastify.register(planRoutes, { prefix: "/api/links" });
   await fastify.register(payerRoutes, { prefix: "/api/payers" });
+  await fastify.register(subscriptionRoutes, { prefix: "/api/subscriptions" });
 
   fastify.get("/health", async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
