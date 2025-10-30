@@ -9,8 +9,6 @@ import {
   getSubscriptionsQuerySchema,
   type subscriptionIdParam,
   subscriptionIdParamSchema,
-  type CancelSubscriptionBody,
-  cancelSubscriptionSchema,
 } from "../schemas/subscription.schema.js";
 
 export const createSubscription = async (
@@ -248,7 +246,12 @@ export const getSubscription = async (
       },
     });
 
-    if (!subscription || subscription.plan.receiverId !== userId) {
+    // Allow access if user is either the plan owner (receiver) or the subscriber (payer)
+    if (
+      !subscription ||
+      (subscription.plan.receiverId !== userId &&
+        subscription.payerId !== userId)
+    ) {
       return reply.code(404).send({
         statusCode: 404,
         error: "Not Found",
@@ -279,13 +282,11 @@ export const getSubscription = async (
 export const cancelSubscription = async (
   request: FastifyRequest<{
     Params: subscriptionIdParam;
-    Body: CancelSubscriptionBody;
   }>,
   reply: FastifyReply
 ) => {
   try {
     const validatedParams = subscriptionIdParamSchema.parse(request.params);
-    const validatedData = cancelSubscriptionSchema.parse(request.body);
     const userId = request.user.userId;
 
     const subscription = await prisma.subscription.findUnique({
@@ -293,7 +294,11 @@ export const cancelSubscription = async (
       include: { plan: true },
     });
 
-    if (!subscription || subscription.plan.receiverId !== userId) {
+    if (
+      !subscription ||
+      (subscription.payerId !== userId &&
+        subscription.plan.receiverId !== userId)
+    ) {
       return reply.code(404).send({
         statusCode: 404,
         error: "Not Found",
