@@ -240,3 +240,76 @@ export async function subscriptionRoutes(fastify: FastifyInstance) {
     handler: getSubscriptions,
   });
 
+  // GET /api/subscriptions/:id - Get subscription details
+  fastify.get<{ Params: subscriptionIdParam }>("/:id", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Subscriptions"],
+      summary: "Get subscription by ID",
+      description:
+        "Retrieve detailed subscription information including payer details, plan info, " +
+        "and payment execution history (last 10 charges). " +
+        "Useful for subscription detail page, debugging payment issues, and viewing charge history.",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            description: "Subscription ID",
+          },
+        },
+      },
+      response: {
+        200: {
+          description: "Subscription details with payment history",
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            status: {
+              type: "string",
+              description: "Current subscription status",
+            },
+            nextDueAt: {
+              type: "string",
+              format: "date-time",
+              description: "Next scheduled payment date",
+            },
+            lastPaidAt: {
+              type: "string",
+              format: "date-time",
+              description: "Last successful payment date",
+            },
+            payer: {
+              type: "object",
+              description: "Subscriber information (name, wallet, email)",
+            },
+            plan: {
+              type: "object",
+              description: "Payment plan details (name, pricing, tokens)",
+            },
+            paymentExecutions: {
+              type: "array",
+              description:
+                "Last 10 payment attempts with status (SUCCESS/FAILED) and transaction signatures",
+              items: { type: "object" },
+            },
+          },
+        },
+        404: {
+          description:
+            "Subscription not found or doesn't belong to this receiver",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+    handler: getSubscription,
+  });
+
