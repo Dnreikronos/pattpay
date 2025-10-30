@@ -21,7 +21,7 @@ export const createPaymentExecutionSchema = z.object({
   planId: z.uuid("Invalid plan ID"),
   txSignature: z.string().min(1, "Transaction signature is required"),
   tokenMint: z.string().min(1, "Token mint address is required"),
-  amount: z.number().positive("Amount must be positive"),
+  amount: z.number().min(0.000001, "Amount must be positive"), // Changed from .positive() for better OpenAPI compatibility
   executedBy: z.string().optional(), // Payer wallet address (optional for tracking)
 });
 
@@ -33,7 +33,7 @@ export type CreatePaymentExecutionBody = z.infer<
  * Query parameters for listing payment executions
  */
 export const getPaymentExecutionsQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
+  page: z.coerce.number().int().min(1).default(1), // Changed from .positive() for better OpenAPI compatibility
   limit: z.coerce.number().int().min(1).max(100).default(10),
   status: z.enum(["SUCCESS", "FAILED", "all"]).default("all"),
   planId: z.uuid().optional(),

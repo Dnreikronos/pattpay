@@ -36,7 +36,7 @@ export const createSubscriptionSchema = z.object({
 export type CreateSubscriptionBody = z.infer<typeof createSubscriptionSchema>;
 
 export const getSubscriptionsQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
+  page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
   status: z.enum(["ACTIVE", "CANCELLED", "EXPIRED", "all"]).default("all"),
   planId: z.string().uuid().optional(),
