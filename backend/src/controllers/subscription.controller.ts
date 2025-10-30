@@ -276,3 +276,72 @@ export const getSubscription = async (
   }
 };
 
+export const cancelSubscription = async (
+  request: FastifyRequest<{
+    Params: subscriptionIdParam;
+    Body: CancelSubscriptionBody;
+  }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = subscriptionIdParamSchema.parse(request.params);
+    const validatedData = cancelSubscriptionSchema.parse(request.body);
+    const userId = request.user.userId;
+
+    const subscription = await prisma.subscription.findUnique({
+      where: { id: validatedParams.id },
+      include: { plan: true },
+    });
+
+    if (!subscription || subscription.plan.receiverId !== userId) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Subscription not found",
+      });
+    }
+
+    if (subscription.status === "CANCELLED") {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Subscription already cancelled",
+      });
+    }
+
+    // TODO: Verify revokeTxSignature on-chain to ensure:
+    // 1. Transaction is valid and confirmed
+    // 2. Transaction called revoke_delegate with correct subscription_id
+    // 3. Transaction was signed by the original payer
+    // This prevents malicious cancellations without actual on-chain revocation
+
+    const updated = await prisma.subscription.update({
+      where: { id: validatedParams.id },
+      data: {
+        status: "CANCELLED",
+      },
+      include: {
+        plan: { include: { planTokens: true } },
+        payer: true,
+      },
+    });
+
+    return reply.code(200).send(updated);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Validation failed",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
