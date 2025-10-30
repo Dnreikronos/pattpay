@@ -13,14 +13,18 @@ export function useAuth() {
   const signinMutation = useSignin();
   const signupMutation = useSignup();
   const logout = useLogout();
-  const { data: user, isLoading: isLoadingUser } = useMe();
+  const { data: user, isLoading: isLoadingUser, isFetching } = useMe();
+
+  // Only consider user loading if there's a token
+  // If no token, we're not loading user data
+  const isCheckingAuth = token ? (isLoadingUser || isFetching) : false;
 
   return {
     // State
     user: user ?? null,
     token,
     isAuthenticated: !!user && !!token,
-    isLoading: signinMutation.isPending || signupMutation.isPending || isLoadingUser,
+    isLoading: signinMutation.isPending || signupMutation.isPending || isCheckingAuth,
 
     // Mutations
     signin: signinMutation.mutate,

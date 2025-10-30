@@ -109,79 +109,109 @@ export function SignupForm() {
         )}
       </div>
 
-      {/* Wallet Address Field */}
-      <div className="space-y-2">
-        <Label htmlFor="walletAddress">
-          Solana Wallet Address
-          <span className="text-xs text-muted ml-2">(Base58 format)</span>
-        </Label>
-        <Input
-          id="walletAddress"
-          type="text"
-          placeholder="7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
-          disabled={isSigningUp}
-          {...register('walletAddress')}
-          aria-invalid={errors.walletAddress ? 'true' : 'false'}
-          className="font-mono text-xs"
-        />
-        {errors.walletAddress && (
-          <p className="text-sm text-error">{errors.walletAddress.message}</p>
-        )}
+      {/* Solana Wallet Section */}
+      <div className="pt-4 border-t border-border">
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-foreground mb-1">
+            Solana Wallet Configuration
+          </h3>
+          <p className="text-xs text-muted">
+            Required to receive payments on the Solana blockchain
+          </p>
+        </div>
+
+        {/* Wallet Address Field */}
+        <div className="space-y-2">
+          <Label htmlFor="walletAddress">
+            Your Solana Wallet Address <span className="text-error">*</span>
+          </Label>
+          <Input
+            id="walletAddress"
+            type="text"
+            placeholder="7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+            disabled={isSigningUp}
+            {...register('walletAddress')}
+            aria-invalid={errors.walletAddress ? 'true' : 'false'}
+            className="font-mono text-xs"
+          />
+          <p className="text-xs text-muted">
+            Your main Solana wallet address (public key). Find it in Phantom, Solflare, or any Solana wallet.
+          </p>
+          {errors.walletAddress && (
+            <p className="text-sm text-error">{errors.walletAddress.message}</p>
+          )}
+        </div>
       </div>
 
-      {/* USDT Token Account Field */}
-      <div className="space-y-2">
-        <Label htmlFor="tokenAccountUSDT">
-          USDT Token Account
-          <span className="text-xs text-muted ml-2">(SPL Token Address)</span>
-        </Label>
-        <Input
-          id="tokenAccountUSDT"
-          type="text"
-          placeholder="Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
-          disabled={isSigningUp}
-          {...register('tokenAccountUSDT')}
-          aria-invalid={errors.tokenAccountUSDT ? 'true' : 'false'}
-          className="font-mono text-xs"
-        />
-        {errors.tokenAccountUSDT && (
-          <p className="text-sm text-error">{errors.tokenAccountUSDT.message}</p>
-        )}
-      </div>
+      {/* Token Accounts Section */}
+      <div className="space-y-4 p-4 bg-surface rounded-md border border-border">
+        <div>
+          <h4 className="text-sm font-medium text-foreground mb-1">
+            Token Accounts (Required)
+          </h4>
+          <p className="text-xs text-muted">
+            SPL token accounts where you'll receive USDT and USDC payments
+          </p>
+        </div>
 
-      {/* USDC Token Account Field */}
-      <div className="space-y-2">
-        <Label htmlFor="tokenAccountUSDC">
-          USDC Token Account
-          <span className="text-xs text-muted ml-2">(SPL Token Address)</span>
-        </Label>
-        <Input
-          id="tokenAccountUSDC"
-          type="text"
-          placeholder="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
-          disabled={isSigningUp}
-          {...register('tokenAccountUSDC')}
-          aria-invalid={errors.tokenAccountUSDC ? 'true' : 'false'}
-          className="font-mono text-xs"
-        />
-        {errors.tokenAccountUSDC && (
-          <p className="text-sm text-error">{errors.tokenAccountUSDC.message}</p>
-        )}
-      </div>
+        {/* USDT Token Account Field */}
+        <div className="space-y-2">
+          <Label htmlFor="tokenAccountUSDT">
+            USDT Token Account <span className="text-error">*</span>
+          </Label>
+          <Input
+            id="tokenAccountUSDT"
+            type="text"
+            placeholder="Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+            disabled={isSigningUp}
+            {...register('tokenAccountUSDT')}
+            aria-invalid={errors.tokenAccountUSDT ? 'true' : 'false'}
+            className="font-mono text-xs"
+          />
+          <p className="text-xs text-muted">
+            Your USDT token account address. This is the SPL token account associated with your wallet for USDT.
+          </p>
+          {errors.tokenAccountUSDT && (
+            <p className="text-sm text-error">{errors.tokenAccountUSDT.message}</p>
+          )}
+        </div>
 
-      {/* Description Field (Optional) */}
-      <div className="space-y-2">
-        <Label htmlFor="description">
-          Description
-          <span className="text-xs text-muted ml-2">(Optional)</span>
-        </Label>
-        <textarea
-          id="description"
-          placeholder="Tell us about your business or use case..."
-          disabled={isSigningUp}
-          {...register('description')}
-          className="flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
+        {/* USDC Token Account Field */}
+        <div className="space-y-2">
+          <Label htmlFor="tokenAccountUSDC">
+            USDC Token Account <span className="text-error">*</span>
+          </Label>
+          <Input
+            id="tokenAccountUSDC"
+            type="text"
+            placeholder="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+            disabled={isSigningUp}
+            {...register('tokenAccountUSDC')}
+            aria-invalid={errors.tokenAccountUSDC ? 'true' : 'false'}
+            className="font-mono text-xs"
+          />
+          <p className="text-xs text-muted">
+            Your USDC token account address. This is the SPL token account associated with your wallet for USDC.
+          </p>
+          {errors.tokenAccountUSDC && (
+            <p className="text-sm text-error">{errors.tokenAccountUSDC.message}</p>
+          )}
+        </div>
+
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted">
+            💡 <strong>Tip:</strong> You can find these addresses in your Solana wallet under "Tokens" or by using{' '}
+            <a
+              href="https://solscan.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand hover:underline"
+            >
+              Solscan.io
+            </a>
+            {' '}to view your token accounts.
+          </p>
+        </div>
       </div>
 
       {/* Submit Button */}

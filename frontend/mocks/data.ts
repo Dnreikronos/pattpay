@@ -330,6 +330,8 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     name: 'Premium Plan Monthly',
     amount: 15.0,
     amountUSD: 1500,
+    amountUSDC: 15.0,
+    amountUSDT: 15.0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/premium-monthly',
     isRecurring: true,
@@ -338,13 +340,19 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 47,
     conversions: 47,
-    views: 189
+    views: 189,
+    tokenPrices: [
+      { id: 'tp_1', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '15.00' },
+      { id: 'tp_2', token: 'USDT', tokenMint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', tokenDecimals: 6, price: '15.00' },
+    ]
   },
   {
     id: 'cl_2',
     name: 'One-time Donation',
     amount: 5.0,
     amountUSD: 500,
+    amountUSDC: 5.0,
+    amountUSDT: 5.0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/donation',
     isRecurring: false,
@@ -353,13 +361,18 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 234,
     conversions: 234,
-    views: 1056
+    views: 1056,
+    tokenPrices: [
+      { id: 'tp_3', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '5.00' },
+    ]
   },
   {
     id: 'cl_3',
     name: 'Annual Subscription',
     amount: 150.0,
     amountUSD: 15000,
+    amountUSDC: 150.0,
+    amountUSDT: 150.0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/annual-sub',
     isRecurring: true,
@@ -368,27 +381,38 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 12,
     conversions: 12,
-    views: 98
+    views: 98,
+    tokenPrices: [
+      { id: 'tp_4', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '150.00' },
+    ]
   },
   {
     id: 'cl_4',
     name: 'Basic Tier',
     amount: 8.0,
     amountUSD: 800,
+    amountUSDC: 8.0,
+    amountUSDT: 8.0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/basic-tier',
     isRecurring: true,
     redirectUrl: 'https://app.example.com/dashboard',
+    description: null,
     createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 89,
     conversions: 89,
-    views: 412
+    views: 412,
+    tokenPrices: [
+      { id: 'tp_5', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '8.00' },
+    ]
   },
   {
     id: 'cl_5',
     name: 'Coffee Tip ☕',
     amount: 1.0,
     amountUSD: 100,
+    amountUSDC: 1.0,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/coffee',
     isRecurring: false,
@@ -397,27 +421,38 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 156,
     conversions: 156,
-    views: 523
+    views: 523,
+    tokenPrices: [
+      { id: 'tp_6', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '1.00' },
+    ]
   },
   {
     id: 'cl_6',
     name: 'Weekly Newsletter',
     amount: 3.0,
     amountUSD: 300,
+    amountUSDC: 3.0,
+    amountUSDT: 3.0,
     status: 'inactive',
     url: 'https://pay.pattpay.com/cl/newsletter',
     isRecurring: true,
+    redirectUrl: null,
     description: 'Weekly premium newsletter access',
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 23,
     conversions: 23,
-    views: 145
+    views: 145,
+    tokenPrices: [
+      { id: 'tp_7', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '3.00' },
+    ]
   },
   {
     id: 'cl_7',
     name: 'Product Purchase',
     amount: 49.99,
     amountUSD: 4999,
+    amountUSDC: 49.99,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/product-x',
     isRecurring: false,
@@ -426,13 +461,18 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 67,
     conversions: 67,
-    views: 342
+    views: 342,
+    tokenPrices: [
+      { id: 'tp_8', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '49.99' },
+    ]
   },
   {
     id: 'cl_8',
     name: 'VIP Access Monthly',
     amount: 25.0,
     amountUSD: 2500,
+    amountUSDC: 25.0,
+    amountUSDT: 25.0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/vip-monthly',
     isRecurring: true,
@@ -441,27 +481,39 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 34,
     conversions: 34,
-    views: 156
+    views: 156,
+    tokenPrices: [
+      { id: 'tp_9', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '25.00' },
+      { id: 'tp_10', token: 'USDT', tokenMint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', tokenDecimals: 6, price: '25.00' },
+    ]
   },
   {
     id: 'cl_9',
     name: 'Early Bird Special',
     amount: 99.0,
     amountUSD: 9900,
+    amountUSDC: 99.0,
+    amountUSDT: 0,
     status: 'inactive',
     url: 'https://pay.pattpay.com/cl/earlybird',
     isRecurring: false,
+    redirectUrl: null,
     description: 'Limited time early bird offer',
     createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 45,
     conversions: 45,
-    views: 234
+    views: 234,
+    tokenPrices: [
+      { id: 'tp_11', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '99.00' },
+    ]
   },
   {
     id: 'cl_10',
     name: 'Starter Pack',
     amount: 12.5,
     amountUSD: 1250,
+    amountUSDC: 12.5,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/starter',
     isRecurring: true,
@@ -470,27 +522,38 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 78,
     conversions: 78,
-    views: 389
+    views: 389,
+    tokenPrices: [
+      { id: 'tp_12', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '12.50' },
+    ]
   },
   {
     id: 'cl_11',
     name: 'Community Support',
     amount: 2.0,
     amountUSD: 200,
+    amountUSDC: 2.0,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/community',
     isRecurring: true,
+    redirectUrl: null,
     description: 'Monthly community contribution',
     createdAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 123,
     conversions: 123,
-    views: 567
+    views: 567,
+    tokenPrices: [
+      { id: 'tp_13', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '2.00' },
+    ]
   },
   {
     id: 'cl_12',
     name: 'Pro Features Upgrade',
     amount: 20.0,
     amountUSD: 2000,
+    amountUSDC: 20.0,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/pro-upgrade',
     isRecurring: false,
@@ -499,13 +562,18 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 56,
     conversions: 56,
-    views: 234
+    views: 234,
+    tokenPrices: [
+      { id: 'tp_14', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '20.00' },
+    ]
   },
   {
     id: 'cl_13',
     name: 'Workshop Registration',
     amount: 75.0,
     amountUSD: 7500,
+    amountUSDC: 75.0,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/workshop',
     isRecurring: false,
@@ -514,13 +582,18 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 28,
     conversions: 28,
-    views: 112
+    views: 112,
+    tokenPrices: [
+      { id: 'tp_15', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '75.00' },
+    ]
   },
   {
     id: 'cl_14',
     name: 'Quarterly Membership',
     amount: 40.0,
     amountUSD: 4000,
+    amountUSDC: 40.0,
+    amountUSDT: 0,
     status: 'active',
     url: 'https://pay.pattpay.com/cl/quarterly',
     isRecurring: true,
@@ -529,21 +602,30 @@ export const mockCheckoutLinks: CheckoutLink[] = [
     createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 19,
     conversions: 19,
-    views: 87
+    views: 87,
+    tokenPrices: [
+      { id: 'tp_16', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '40.00' },
+    ]
   },
   {
     id: 'cl_15',
     name: 'Beta Access',
     amount: 0.5,
     amountUSD: 50,
+    amountUSDC: 0.5,
+    amountUSDT: 0,
     status: 'inactive',
     url: 'https://pay.pattpay.com/cl/beta',
     isRecurring: false,
+    redirectUrl: null,
     description: 'Early access to beta features',
     createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
     totalPayments: 342,
     conversions: 342,
-    views: 1234
+    views: 1234,
+    tokenPrices: [
+      { id: 'tp_17', token: 'USDC', tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', tokenDecimals: 6, price: '0.50' },
+    ]
   }
 ]
 
