@@ -140,3 +140,103 @@ export async function subscriptionRoutes(fastify: FastifyInstance) {
     handler: createSubscription,
   });
 
+  // GET /api/subscriptions - List subscriptions for receiver
+  fastify.get<{ Querystring: GetSubscriptionQuery }>("/", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Subscriptions"],
+      summary: "List all subscriptions",
+      description:
+        "Get paginated list of subscriptions for the authenticated receiver (merchant). " +
+        "Shows all subscriptions across all plans owned by this receiver. " +
+        "Supports filtering by status, date range, token type, and plan. " +
+        "Useful for dashboard, revenue analytics, and subscriber management.",
+      security: [{ bearerAuth: [] }],
+      querystring: {
+        type: "object",
+        properties: {
+          page: {
+            type: "integer",
+            minimum: 1,
+            default: 1,
+            description: "Page number for pagination",
+          },
+          limit: {
+            type: "integer",
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+            description: "Number of items per page",
+          },
+          status: {
+            type: "string",
+            enum: ["ACTIVE", "CANCELLED", "EXPIRED", "all"],
+            default: "all",
+            description:
+              "Filter by subscription status (ACTIVE = currently charging, CANCELLED = user unsubscribed, EXPIRED = duration ended)",
+          },
+          planId: {
+            type: "string",
+            format: "uuid",
+            description: "Filter by specific payment plan ID",
+          },
+          tokenMint: {
+            type: "string",
+            description:
+              "Filter by token mint address (e.g., filter for USDC subscriptions only)",
+          },
+          dateFrom: {
+            type: "string",
+            format: "date-time",
+            description:
+              "Filter subscriptions created on or after this date (ISO format)",
+          },
+          dateTo: {
+            type: "string",
+            format: "date-time",
+            description:
+              "Filter subscriptions created on or before this date (ISO format)",
+          },
+          search: {
+            type: "string",
+            description:
+              "Search by payer name, payer wallet address, or plan name (case-insensitive)",
+          },
+        },
+      },
+      response: {
+        200: {
+          description: "List of subscriptions with payer and plan details",
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              description: "Array of subscription objects with relations",
+              items: { type: "object" },
+            },
+            meta: {
+              type: "object",
+              description: "Pagination metadata",
+              properties: {
+                page: { type: "integer", description: "Current page number" },
+                limit: {
+                  type: "integer",
+                  description: "Items per page",
+                },
+                total: {
+                  type: "integer",
+                  description: "Total matching subscriptions",
+                },
+                totalPages: {
+                  type: "integer",
+                  description: "Total number of pages",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    handler: getSubscriptions,
+  });
+
