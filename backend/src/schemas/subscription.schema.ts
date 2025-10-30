@@ -49,7 +49,7 @@ export const getSubscriptionsQuerySchema = z.object({
 export type GetSubscriptionQuery = z.infer<typeof getSubscriptionsQuerySchema>;
 
 export const subscriptionIdParamSchema = z.object({
-  id: z.string().uuid("Invalid subscription ID"),
+  id: z.uuid("Invalid subscription ID"),
 });
 
 export type subscriptionIdParam = z.infer<typeof subscriptionIdParamSchema>;
@@ -72,8 +72,3 @@ export type subscriptionIdParam = z.infer<typeof subscriptionIdParamSchema>;
  * The revoke_delegate instruction closes the PDA, preventing any further charges
  * The relayer will no longer be able to call charge_subscription for this subscription
  */
-export const cancelSubscriptionSchema = z.object({
-  revokeTxSignature: z.string().min(1, "Revoke transaction signature required"), // Transaction hash from revoke_delegate
-});
-
-export type CancelSubscriptionBody = z.infer<typeof cancelSubscriptionSchema>;
