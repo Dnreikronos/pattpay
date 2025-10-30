@@ -294,7 +294,36 @@ Response: {
 
 ---
 
-## 💳 Payments Management
+## 💳 Payment Flows
+
+PattPay supports two payment flows:
+
+1. **Recurring Subscriptions** - `POST /api/subscribe`
+2. **One-Time Payments** - `POST /api/payment-executions`
+
+**📖 For detailed implementation guide, see [PAYMENT_FLOWS.md](./PAYMENT_FLOWS.md)**
+
+### Quick Reference
+
+**Recurring Subscription:**
+```http
+POST /api/subscribe (Public endpoint)
+```
+
+**One-Time Payment:**
+```http
+POST /api/payment-executions (Public endpoint)
+```
+
+**View Payment History (Merchant only):**
+```http
+GET /api/payment-executions (Authenticated)
+GET /api/payment-executions/:id (Authenticated)
+```
+
+---
+
+## 💳 Payments Management (Legacy)
 
 ### Payment Operations
 
