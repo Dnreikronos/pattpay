@@ -1,4 +1,5 @@
 import { prisma } from "./db.js";
+import { executePayment } from "./services/solana.service.js";
 
 const MAX_RETRY_ATTEMPTS = 5;
 const BASE_RETRY_DELAY_MS = 60000; // 1 minute
@@ -37,6 +38,7 @@ const processWorker = async () => {
             plan: {
               include: {
                 planTokens: true,
+                receiver: true,
               },
             },
             payer: true,
@@ -61,9 +63,63 @@ const processWorker = async () => {
       );
 
       try {
-        // TODO: Implement executePayment() when Anchor program is ready
-        // get everything needed to execute the payment (recurring or one-time)
-        // await executePayment(job);
+        const subscription = job.subscription;
+        const plan = subscription.plan;
+
+        // Find the token price for this subscription
+        const planToken = plan.planTokens.find(
+          (t) => t.tokenMint === subscription.token_mint
+        );
+
+        if (!planToken) {
+          throw new Error(
+            `Token ${subscription.token_mint} not found in plan ${plan.id}`
+          );
+        }
+
+        // Execute payment on-chain
+        console.log(
+          `💳 Charging ${planToken.price} ${planToken.symbol} for subscription ${subscription.id}`
+        );
+
+        const txSignature = await executePayment({
+          subscriptionId: subscription.id,
+          amount: planToken.price.toNumber(),
+          payerWallet: subscription.payer.walletAddress,
+          receiverWallet: plan.receiver.walletAddress,
+          tokenMint: subscription.token_mint,
+          tokenDecimals: subscription.tokenDecimals,
+        });
+
+        console.log(`✅ Payment executed successfully. TX: ${txSignature}`);
+
+        // Create successful payment execution record
+        await prisma.paymentExecution.create({
+          data: {
+            subscriptionId: subscription.id,
+            planId: plan.id,
+            txSignature,
+            executedBy: "relayer",
+            status: "SUCCESS",
+            executedAt: new Date(),
+            tokenMint: subscription.token_mint,
+            amount: planToken.price,
+          },
+        });
+
+        // Update subscription - set next due date
+        const nextDueAt = new Date(subscription.nextDueAt);
+        if (plan.periodSeconds) {
+          nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
+        }
+
+        await prisma.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            lastPaidAt: new Date(),
+            nextDueAt,
+          },
+        });
 
         // Mark job as successful
         await prisma.relayerJob.update({
@@ -80,6 +136,23 @@ const processWorker = async () => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         console.error(`❌ Job ${job.id} failed:`, errorMessage);
+
+        // Create failed payment execution record
+        await prisma.paymentExecution.create({
+          data: {
+            subscriptionId: job.subscription.id,
+            planId: job.subscription.plan.id,
+            txSignature: "failed",
+            executedBy: "relayer",
+            status: "FAILED",
+            executedAt: new Date(),
+            errorMessage,
+            tokenMint: job.subscription.token_mint,
+            amount: job.subscription.plan.planTokens.find(
+              (t) => t.tokenMint === job.subscription.token_mint
+            )!.price,
+          },
+        });
 
         const currentRetryCount = job.retryCount + 1;
 
@@ -102,7 +175,12 @@ const processWorker = async () => {
             } scheduled for retry ${currentRetryCount}/${MAX_RETRY_ATTEMPTS} at ${nextRetry.toISOString()}`
           );
         } else {
-          // Max retries reached, mark as failed
+          // Max retries reached, mark subscription as EXPIRED
+          await prisma.subscription.update({
+            where: { id: job.subscription.id },
+            data: { status: "EXPIRED" },
+          });
+
           await prisma.relayerJob.update({
             where: { id: job.id },
             data: {
@@ -114,7 +192,7 @@ const processWorker = async () => {
 
           failedCount++;
           console.log(
-            `💀 Job ${job.id} permanently failed after ${MAX_RETRY_ATTEMPTS} attempts`
+            `💀 Job ${job.id} permanently failed after ${MAX_RETRY_ATTEMPTS} attempts. Subscription marked as EXPIRED.`
           );
         }
       }
@@ -143,7 +221,7 @@ const gracefulShutdown = async (signal: string) => {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
-// Executar se chamado diretamente
+// Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   processWorker().catch((error) => {
     console.error("💥 Fatal error in processor:", error);

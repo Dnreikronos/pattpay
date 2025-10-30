@@ -24,11 +24,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@fastify/cors": "^11.1.0",
     "@fastify/jwt": "^10.0.0",
     "@fastify/swagger": "^9.5.2",
     "@fastify/swagger-ui": "^5.2.3",
     "@prisma/client": "^6.17.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
@@ -36,6 +39,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@coral-xyz/anchor-cli": "^0.31.2",
     "@types/node": "^24.7.2",
     "@vitest/coverage-v8": "^4.0.2",
     "@vitest/ui": "^4.0.2",
