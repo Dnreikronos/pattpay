@@ -13,8 +13,26 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { toast } from "sonner";
 
 export function Header() {
+  const { user, logout } = useAuth();
+
+  // Get user initials for avatar (first letter of name)
+  const userInitials = user?.name
+    ? user.name.charAt(0).toUpperCase()
+    : 'U';
+
+  const displayName = user?.name || 'PattPay User';
+  const displayEmail = user?.email || 'user@pattpay.com';
+
+  const handleLogout = () => {
+    toast.success('Signed out successfully', {
+      description: 'You have been logged out of your account.',
+    });
+    logout();
+  };
   return (
     <header className="h-16 w-full border-b border-border bg-surface dark:bg-black shrink-0">
       <div className="flex h-full items-center justify-between px-6">
@@ -63,16 +81,16 @@ export function Header() {
               <Button variant="ghost" size="sm" className="gap-2">
                 <Avatar className="size-6">
                   <AvatarFallback className="bg-brand-300 text-surface text-xs">
-                    U
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-sans text-sm font-medium">PattPay User</span>
+                <span className="font-sans text-sm font-medium">{displayName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <div className="flex flex-col p-2">
-                <span className="font-sans font-medium text-sm">PattPay User</span>
-                <span className="text-xs text-muted">user@pattpay.com</span>
+                <span className="font-sans font-medium text-sm">{displayName}</span>
+                <span className="text-xs text-muted">{displayEmail}</span>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
@@ -82,7 +100,7 @@ export function Header() {
                 <Link href="/settings">Settings</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Sign out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

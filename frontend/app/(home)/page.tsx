@@ -2,18 +2,29 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import PixelClouds from "./components/PixelClouds";
 import CardShowcase from "@/components/sections/CardShowcase";
 import FAQ from "@/components/sections/FAQ";
 import WaitlistForm from "@/components/waitlist/WaitlistForm";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const imageRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: imageRef,
     offset: ["start end", "end start"],
   });
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   // Parallax effect for the city image
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);

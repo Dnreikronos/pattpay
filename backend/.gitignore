@@ -1,5 +1,9 @@
 .env
 node_modules
 
+#Claude
+.claude
+CLAUDE.md
+
 # Test coverage
 coverage
