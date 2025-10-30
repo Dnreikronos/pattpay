@@ -26,10 +26,15 @@ export function SigninForm() {
   // Show toast notification on error
   useEffect(() => {
     if (signinError) {
+      // Check if it's an API error with message property
+      const apiError = signinError as { message?: string };
+      const errorMessage =
+        apiError.message ||
+        (signinError instanceof Error ? signinError.message : null) ||
+        'An error occurred during sign in. Please try again.';
+
       toast.error('Sign in failed', {
-        description: signinError instanceof Error
-          ? signinError.message
-          : 'An error occurred during sign in. Please try again.',
+        description: errorMessage,
       });
     }
   }, [signinError]);
