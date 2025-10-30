@@ -1,53 +1,67 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Link as LinkIcon, DollarSign, Repeat, ExternalLink, Plus, Check } from 'lucide-react'
+import { Link as LinkIcon, Repeat, ExternalLink, Plus, Calendar, Clock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useLinks } from '@/lib/hooks/useLinks'
+import type { CreateLinkRequest } from '@/types/link'
 
 interface CreateLinkModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
+interface TokenPriceInput {
+  token: 'USDC' | 'USDT' | 'SOL'
+  price: string
+}
+
 export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
+  const { createLinkAsync, isCreating } = useLinks({ statuses: [], isRecurring: 'all' })
+
   const [formData, setFormData] = useState({
     name: '',
-    amount: '',
     redirectUrl: '',
     isRecurring: false,
     description: '',
-    acceptedTokens: ['USDC', 'USDT', 'SOL'] // Default: all tokens accepted
+    expiresAt: '',
+    durationMonths: '',
+    periodSeconds: ''
   })
+
+  const [tokenPrices, setTokenPrices] = useState<TokenPriceInput[]>([
+    { token: 'USDC', price: '' },
+  ])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const availableTokens = [
-    { id: 'USDC', label: 'USDC', icon: '💵' },
-    { id: 'USDT', label: 'USDT', icon: '💶' },
-    { id: 'SOL', label: 'SOL', icon: '◎' }
-  ]
+  const availableTokens: Array<'USDC' | 'USDT' | 'SOL'> = ['USDC', 'USDT', 'SOL']
 
-  const toggleToken = (tokenId: string) => {
-    const currentTokens = formData.acceptedTokens
-    if (currentTokens.includes(tokenId)) {
-      // Don't allow removing all tokens
-      if (currentTokens.length === 1) return
-      setFormData({
-        ...formData,
-        acceptedTokens: currentTokens.filter(t => t !== tokenId)
-      })
-    } else {
-      setFormData({
-        ...formData,
-        acceptedTokens: [...currentTokens, tokenId]
-      })
+  const addTokenPrice = () => {
+    // Find first unused token
+    const usedTokens = tokenPrices.map(tp => tp.token)
+    const availableToken = availableTokens.find(t => !usedTokens.includes(t))
+    if (availableToken) {
+      setTokenPrices([...tokenPrices, { token: availableToken, price: '' }])
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const removeTokenPrice = (index: number) => {
+    if (tokenPrices.length > 1) {
+      setTokenPrices(tokenPrices.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateTokenPrice = (index: number, field: 'token' | 'price', value: string) => {
+    const updated = [...tokenPrices]
+    updated[index] = { ...updated[index], [field]: value }
+    setTokenPrices(updated)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Validation
@@ -57,12 +71,29 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
       newErrors.name = 'Link name is required'
     }
 
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = 'Amount must be greater than 0'
+    // Validate token prices
+    const validTokenPrices = tokenPrices.filter(tp => tp.price && parseFloat(tp.price) > 0)
+    if (validTokenPrices.length === 0) {
+      newErrors.tokenPrices = 'At least one token price is required'
+    }
+
+    // Check for duplicate tokens
+    const tokens = tokenPrices.map(tp => tp.token)
+    if (new Set(tokens).size !== tokens.length) {
+      newErrors.tokenPrices = 'Duplicate tokens are not allowed'
     }
 
     if (formData.redirectUrl && !isValidUrl(formData.redirectUrl)) {
       newErrors.redirectUrl = 'Please enter a valid URL'
+    }
+
+    if (formData.isRecurring) {
+      if (!formData.durationMonths || parseInt(formData.durationMonths) <= 0) {
+        newErrors.durationMonths = 'Duration in months is required for recurring payments'
+      }
+      if (!formData.periodSeconds || parseInt(formData.periodSeconds) <= 0) {
+        newErrors.periodSeconds = 'Billing period is required for recurring payments'
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -70,20 +101,45 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
       return
     }
 
-    // TODO: Submit to API
-    console.log('Creating link:', formData)
+    // Prepare request data
+    const requestData: CreateLinkRequest = {
+      name: formData.name.trim(),
+      description: formData.description.trim() || undefined,
+      redirectUrl: formData.redirectUrl.trim() || undefined,
+      expiresAt: formData.expiresAt || undefined,
+      isRecurring: formData.isRecurring,
+      durationMonths: formData.isRecurring ? parseInt(formData.durationMonths) : undefined,
+      periodSeconds: formData.isRecurring ? parseInt(formData.periodSeconds) : undefined,
+      tokenPrices: validTokenPrices.map(tp => ({
+        token: tp.token,
+        price: parseFloat(tp.price)
+      }))
+    }
 
-    // Reset form
+    try {
+      await createLinkAsync(requestData)
+
+      // Reset form on success
+      resetForm()
+      onOpenChange(false)
+    } catch (error) {
+      // Error is handled by the mutation hook (toast notification)
+      console.error('Failed to create link:', error)
+    }
+  }
+
+  const resetForm = () => {
     setFormData({
       name: '',
-      amount: '',
       redirectUrl: '',
       isRecurring: false,
       description: '',
-      acceptedTokens: ['USDC', 'USDT', 'SOL']
+      expiresAt: '',
+      durationMonths: '',
+      periodSeconds: ''
     })
+    setTokenPrices([{ token: 'USDC', price: '' }])
     setErrors({})
-    onOpenChange(false)
   }
 
   const isValidUrl = (url: string) => {
@@ -96,28 +152,25 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
   }
 
   const handleCancel = () => {
-    setFormData({
-      name: '',
-      amount: '',
-      redirectUrl: '',
-      isRecurring: false,
-      description: '',
-      acceptedTokens: ['USDC', 'USDT', 'SOL']
-    })
-    setErrors({})
+    resetForm()
     onOpenChange(false)
   }
 
   const generatedUrl = formData.name
-    ? `https://pay.pattpay.com/cl/${formData.name.toLowerCase().replace(/\s+/g, '-')}`
+    ? `https://pay.pattpay.com/payment/${formData.name.toLowerCase().replace(/\s+/g, '-')}`
     : ''
 
-  const usdToSOL = 0.01 // Mock conversion rate (1 USD = 0.01 SOL)
-  const amountSOL = formData.amount ? (parseFloat(formData.amount) * usdToSOL).toFixed(4) : '0.0000'
+  // Common period presets in seconds
+  const periodPresets = [
+    { label: 'Weekly', value: 604800, days: 7 },
+    { label: 'Monthly', value: 2592000, days: 30 },
+    { label: 'Quarterly', value: 7776000, days: 90 },
+    { label: 'Yearly', value: 31536000, days: 365 },
+  ]
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-2 border-border rounded-2xl shadow-xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card border-2 border-border rounded-2xl shadow-xl">
         <DialogHeader className="border-b border-border pb-4">
           <DialogTitle className="flex items-center gap-3 font-mono text-lg font-bold text-foreground">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand border-2 border-brand/20">
@@ -155,71 +208,75 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
             )}
           </div>
 
-          {/* Amount */}
-          <div className="space-y-2">
+          {/* Token Prices */}
+          <div className="space-y-3">
             <label className="font-mono text-sm font-semibold text-foreground flex items-center gap-1">
-              Amount (USD) <span className="text-error text-base">*</span>
+              Token Prices <span className="text-error text-base">*</span>
             </label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                <span className="font-mono text-sm font-bold text-accent">$</span>
-              </div>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.amount}
-                onChange={(e) => {
-                  setFormData({ ...formData, amount: e.target.value })
-                  setErrors({ ...errors, amount: '' })
-                }}
-                placeholder="0.00"
-                className={`flex h-11 w-full rounded-lg border-2 ${errors.amount ? 'border-error focus-visible:border-error' : 'border-border focus-visible:border-brand'} bg-card px-4 py-2 pl-12 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] hover:border-brand/50 transition-all duration-200`}
-              />
+            <p className="text-muted-foreground text-xs font-mono -mt-1">
+              Set the price for each accepted token
+            </p>
+
+            <div className="space-y-3">
+              {tokenPrices.map((tp, idx) => (
+                <div key={idx} className="flex gap-3 items-start">
+                  <select
+                    value={tp.token}
+                    onChange={(e) => updateTokenPrice(idx, 'token', e.target.value)}
+                    className="flex h-11 w-32 rounded-lg border-2 border-border bg-card px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:border-brand hover:border-brand/50 transition-all"
+                  >
+                    {availableTokens.map(token => (
+                      <option key={token} value={token}>{token}</option>
+                    ))}
+                  </select>
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={tp.price}
+                      onChange={(e) => {
+                        updateTokenPrice(idx, 'price', e.target.value)
+                        setErrors({ ...errors, tokenPrices: '' })
+                      }}
+                      placeholder="0.00"
+                      className="flex h-11 w-full rounded-lg border-2 border-border bg-card px-4 py-2 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-brand hover:border-brand/50 transition-all"
+                    />
+                  </div>
+                  {tokenPrices.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => removeTokenPrice(idx)}
+                      className="h-11 px-3 border-2 border-error/20 hover:border-error hover:bg-error/5 text-error cursor-pointer"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
-            {formData.amount && !errors.amount && (
-              <p className="text-muted-foreground text-xs font-mono flex items-center gap-1">
-                <span className="text-brand">≈</span> {amountSOL} SOL
-              </p>
+
+            {tokenPrices.length < availableTokens.length && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addTokenPrice}
+                className="w-full h-10 font-mono text-sm border-2 border-dashed border-brand/30 hover:border-brand hover:bg-brand/5 text-brand cursor-pointer"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Token
+              </Button>
             )}
-            {errors.amount && (
-              <p className="text-error text-xs font-mono flex items-center gap-1 mt-1">
-                ⚠ {errors.amount}
+
+            {errors.tokenPrices && (
+              <p className="text-error text-xs font-mono flex items-center gap-1">
+                ⚠ {errors.tokenPrices}
               </p>
             )}
           </div>
 
-          {/* Redirect URL */}
-          <div className="space-y-2">
-            <label className="font-mono text-sm font-semibold text-foreground">
-              Redirect URL <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
-            </label>
-            <div className="relative">
-              <ExternalLink className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="url"
-                value={formData.redirectUrl}
-                onChange={(e) => {
-                  setFormData({ ...formData, redirectUrl: e.target.value })
-                  setErrors({ ...errors, redirectUrl: '' })
-                }}
-                placeholder="https://your-site.com/success"
-                className={`flex h-11 w-full rounded-lg border-2 ${errors.redirectUrl ? 'border-error focus-visible:border-error' : 'border-border focus-visible:border-brand'} bg-card px-4 py-2 pl-11 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] hover:border-brand/50 transition-all duration-200`}
-              />
-            </div>
-            {!errors.redirectUrl && (
-              <p className="text-muted-foreground text-xs font-mono">
-                Where to redirect users after successful payment
-              </p>
-            )}
-            {errors.redirectUrl && (
-              <p className="text-error text-xs font-mono flex items-center gap-1 mt-1">
-                ⚠ {errors.redirectUrl}
-              </p>
-            )}
-          </div>
-
-          {/* Is Recurring Toggle */}
+          {/* Payment Type Toggle */}
           <div className="space-y-2">
             <label className="font-mono text-sm font-semibold text-foreground">
               Payment Type
@@ -262,53 +319,131 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
             </button>
           </div>
 
-          {/* Accepted Tokens */}
-          <div className="space-y-3">
-            <label className="font-mono text-sm font-semibold text-foreground">
-              Accepted Tokens <span className="text-error text-base">*</span>
-            </label>
-            <p className="text-muted-foreground text-xs font-mono -mt-1">
-              Select which tokens customers can use to pay
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {availableTokens.map((token) => {
-                const isSelected = formData.acceptedTokens.includes(token.id)
-                const isOnlyOne = formData.acceptedTokens.length === 1 && isSelected
+          {/* Recurring Fields */}
+          {formData.isRecurring && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-4 bg-brand/5 rounded-xl p-4 border-2 border-brand/20"
+            >
+              <h3 className="font-mono text-sm font-semibold text-brand flex items-center gap-2">
+                <Repeat className="h-4 w-4" />
+                Subscription Settings
+              </h3>
 
-                return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Duration Months */}
+                <div className="space-y-2">
+                  <label className="font-mono text-xs font-semibold text-foreground flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Duration (months) <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.durationMonths}
+                    onChange={(e) => {
+                      setFormData({ ...formData, durationMonths: e.target.value })
+                      setErrors({ ...errors, durationMonths: '' })
+                    }}
+                    placeholder="12"
+                    className={`flex h-10 w-full rounded-lg border-2 ${errors.durationMonths ? 'border-error' : 'border-border focus-visible:border-brand'} bg-card px-3 py-2 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none`}
+                  />
+                  {errors.durationMonths && (
+                    <p className="text-error text-xs font-mono">⚠ {errors.durationMonths}</p>
+                  )}
+                  <p className="text-muted-foreground text-xs font-mono">
+                    Total subscription length
+                  </p>
+                </div>
+
+                {/* Period Seconds */}
+                <div className="space-y-2">
+                  <label className="font-mono text-xs font-semibold text-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Billing Period (seconds) <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.periodSeconds}
+                    onChange={(e) => {
+                      setFormData({ ...formData, periodSeconds: e.target.value })
+                      setErrors({ ...errors, periodSeconds: '' })
+                    }}
+                    placeholder="2592000"
+                    className={`flex h-10 w-full rounded-lg border-2 ${errors.periodSeconds ? 'border-error' : 'border-border focus-visible:border-brand'} bg-card px-3 py-2 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none`}
+                  />
+                  {errors.periodSeconds && (
+                    <p className="text-error text-xs font-mono">⚠ {errors.periodSeconds}</p>
+                  )}
+                  <p className="text-muted-foreground text-xs font-mono">
+                    How often to charge
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex flex-wrap gap-2">
+                {periodPresets.map(preset => (
                   <button
-                    key={token.id}
+                    key={preset.label}
                     type="button"
-                    onClick={() => toggleToken(token.id)}
-                    disabled={isOnlyOne}
-                    className={`flex flex-col items-center justify-center rounded-xl border-2 px-4 py-4 transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-brand bg-brand/5 shadow-sm'
-                        : 'border-border bg-card hover:border-brand/40 hover:bg-brand/5'
-                    } ${isOnlyOne ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => setFormData({ ...formData, periodSeconds: preset.value.toString() })}
+                    className="px-3 py-1.5 rounded-lg border border-brand/20 bg-card hover:bg-brand/10 hover:border-brand text-xs font-mono text-foreground transition-all cursor-pointer"
                   >
-                    <span className="text-2xl mb-2">{token.icon}</span>
-                    <span className="font-mono text-sm font-semibold text-foreground">
-                      {token.label}
-                    </span>
-                    <div className="mt-2">
-                      {isSelected ? (
-                        <div className="flex h-5 w-5 items-center justify-center rounded-md bg-brand">
-                          <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
-                        </div>
-                      ) : (
-                        <div className="h-5 w-5 rounded-md border-2 border-muted" />
-                      )}
-                    </div>
+                    {preset.label} ({preset.days}d)
                   </button>
-                )
-              })}
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Redirect URL */}
+          <div className="space-y-2">
+            <label className="font-mono text-sm font-semibold text-foreground">
+              Redirect URL <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
+            </label>
+            <div className="relative">
+              <ExternalLink className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="url"
+                value={formData.redirectUrl}
+                onChange={(e) => {
+                  setFormData({ ...formData, redirectUrl: e.target.value })
+                  setErrors({ ...errors, redirectUrl: '' })
+                }}
+                placeholder="https://your-site.com/success"
+                className={`flex h-11 w-full rounded-lg border-2 ${errors.redirectUrl ? 'border-error focus-visible:border-error' : 'border-border focus-visible:border-brand'} bg-card px-4 py-2 pl-11 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] hover:border-brand/50 transition-all duration-200`}
+              />
             </div>
-            {formData.acceptedTokens.length === 1 && (
+            {!errors.redirectUrl && (
               <p className="text-muted-foreground text-xs font-mono">
-                At least one token must be selected
+                Where to redirect users after successful payment
               </p>
             )}
+            {errors.redirectUrl && (
+              <p className="text-error text-xs font-mono flex items-center gap-1 mt-1">
+                ⚠ {errors.redirectUrl}
+              </p>
+            )}
+          </div>
+
+          {/* Expiration Date */}
+          <div className="space-y-2">
+            <label className="font-mono text-sm font-semibold text-foreground">
+              Expiration Date <span className="text-muted-foreground font-normal text-xs">(Optional)</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={formData.expiresAt}
+              onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+              className="flex h-11 w-full rounded-lg border-2 border-border bg-card px-4 py-2 font-mono text-sm focus-visible:outline-none focus-visible:border-brand hover:border-brand/50 transition-all"
+            />
+            <p className="text-muted-foreground text-xs font-mono">
+              When this link stops accepting payments
+            </p>
           </div>
 
           {/* Description */}
@@ -354,34 +489,6 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
                   <Badge className={`${formData.isRecurring ? 'bg-card text-brand border-2 border-brand' : 'bg-card text-accent border-2 border-accent'} font-mono text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm`}>
                     {formData.isRecurring ? '🔄 Recurring' : '⚡ One-time'}
                   </Badge>
-                  {formData.amount && (
-                    <div className="bg-card rounded-lg px-3 py-1.5 border-2 border-accent/30 shadow-sm">
-                      <span className="font-mono text-sm font-bold text-foreground">
-                        ${formData.amount}
-                      </span>
-                      <span className="font-mono text-xs text-muted-foreground ml-2">
-                        (~{amountSOL} SOL)
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Accepted Tokens in Preview */}
-                <div className="mt-3 pt-3 border-t border-brand/10">
-                  <p className="font-mono text-xs text-muted-foreground mb-2">Accepts</p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.acceptedTokens.map(tokenId => {
-                      const token = availableTokens.find(t => t.id === tokenId)
-                      return (
-                        <div key={tokenId} className="bg-card rounded-lg px-2.5 py-1.5 border border-border shadow-sm flex items-center gap-1.5">
-                          <span className="text-sm">{token?.icon}</span>
-                          <span className="font-mono text-xs font-semibold text-foreground">
-                            {token?.label}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
                 </div>
               </motion.div>
             )}
@@ -393,16 +500,27 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
               type="button"
               variant="outline"
               onClick={handleCancel}
+              disabled={isCreating}
               className="flex-1 h-12 font-mono text-sm font-semibold border-2 border-border hover:border-error hover:bg-error/5 hover:text-error transition-all cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 h-12 font-mono text-sm font-semibold bg-brand hover:bg-brand-600 text-white shadow-lg shadow-brand/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+              disabled={isCreating}
+              className="flex-1 h-12 font-mono text-sm font-semibold bg-brand hover:bg-brand-600 text-white shadow-lg shadow-brand/20 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Plus className="h-4 w-4" />
-              Create Link
+              {isCreating ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Create Link
+                </>
+              )}
             </Button>
           </div>
         </form>

@@ -62,13 +62,19 @@ export async function authRoutes(fastify: FastifyInstance) {
           description: "Account created successfully",
           type: "object",
           properties: {
-            receiver: {
+            user: {
               type: "object",
               properties: {
                 id: { type: "string" },
                 name: { type: "string" },
                 email: { type: "string" },
+                authMethod: { type: "string" },
                 walletAddress: { type: "string" },
+                tokenAccountUSDC: { type: "string" },
+                tokenAccountUSDT: { type: "string" },
+                description: { type: "string", nullable: true },
+                createdAt: { type: "string" },
+                updatedAt: { type: "string" },
               },
             },
             token: { type: "string", description: "JWT token" },
@@ -121,13 +127,19 @@ export async function authRoutes(fastify: FastifyInstance) {
           description: "Login successful",
           type: "object",
           properties: {
-            receiver: {
+            user: {
               type: "object",
               properties: {
                 id: { type: "string" },
                 name: { type: "string" },
                 email: { type: "string" },
+                authMethod: { type: "string" },
                 walletAddress: { type: "string" },
+                tokenAccountUSDC: { type: "string" },
+                tokenAccountUSDT: { type: "string" },
+                description: { type: "string", nullable: true },
+                createdAt: { type: "string" },
+                updatedAt: { type: "string" },
               },
             },
             token: { type: "string", description: "JWT token" },
@@ -148,19 +160,22 @@ export async function authRoutes(fastify: FastifyInstance) {
       security: [{ bearerAuth: [] }],
       response: {
         200: {
-          description: "Receiver information",
+          description: "User information",
           type: "object",
           properties: {
-            receiver: {
+            user: {
               type: "object",
               properties: {
                 id: { type: "string" },
                 name: { type: "string" },
                 email: { type: "string" },
+                authMethod: { type: "string" },
                 walletAddress: { type: "string" },
                 tokenAccountUSDC: { type: "string" },
                 tokenAccountUSDT: { type: "string" },
-                description: { type: "string" },
+                description: { type: "string", nullable: true },
+                createdAt: { type: "string" },
+                updatedAt: { type: "string" },
               },
             },
           },

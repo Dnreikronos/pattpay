@@ -37,15 +37,22 @@ export function useMe() {
   const query = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
-      if (!token) {
+      // Double check token exists (should never happen due to enabled check)
+      const currentToken = TokenStorage.get();
+      if (!currentToken) {
         throw new Error('No token available');
       }
-      const response = await authApi.getMe(token);
+      const response = await authApi.getMe(currentToken);
       return response.user;
     },
-    enabled: !!token, // Only fetch if token exists
+    enabled: !!token && token.length > 0, // Only fetch if token exists and is not empty
     staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     retry: false, // Don't retry on auth errors
+    retryOnMount: false, // Don't retry on mount
+    refetchOnMount: false, // Don't refetch on mount if data is fresh
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
   });
 
   // Handle ONLY authentication errors (401/403/404)

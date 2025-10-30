@@ -10,7 +10,6 @@ export const signupSchema = z.object({
   password: z.string()
     .min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
-  description: z.string().optional(),
   walletAddress: z.string()
     .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, { message: "Invalid Solana address" }),
   tokenAccountUSDT: z.string()

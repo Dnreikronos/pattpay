@@ -1,88 +1,119 @@
-import { useState, useEffect, useMemo } from 'react'
-import type { CheckoutLink, LinkFilters, LinkStats } from '@/types/link'
-import { mockCheckoutLinks, mockLinkStats } from '@/mocks/data'
+'use client';
 
-const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100]
+import { useState, useEffect, useMemo } from 'react';
+import { useLinksQuery } from './useLinkQueries';
+import { useCreateLink, useUpdateLink } from './useLinkMutations';
+import { transformCheckoutLinks } from '../utils/link-transform';
+import type { CheckoutLink, LinkFilters, LinkStats, LinkFiltersParams } from '@/types/link';
 
+/**
+ * Main links hook
+ * Orchestrates TanStack Query hooks for payment links management
+ * Maintains interface compatibility with existing UI components
+ */
 export function useLinks(filters: LinkFilters) {
-  const [loading, setLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [perPage, setPerPage] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
-  // Simulate loading
-  useEffect(() => {
-    setLoading(true)
-    const timer = setTimeout(() => setLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [filters])
+  // Convert UI filters to API params
+  const apiFilters: LinkFiltersParams = useMemo(() => {
+    const params: LinkFiltersParams = {
+      page: currentPage,
+      limit: perPage,
+    };
+
+    // Status filter
+    if (filters.statuses && filters.statuses.length > 0) {
+      // For now, use the first status (backend expects single status)
+      params.status = filters.statuses[0] === 'active' ? 'ACTIVE' : 'INACTIVE';
+    } else {
+      params.status = 'all';
+    }
+
+    // Recurring filter
+    if (filters.isRecurring !== undefined && filters.isRecurring !== 'all') {
+      params.isRecurring = filters.isRecurring ? 'true' : 'false';
+    } else {
+      params.isRecurring = 'all';
+    }
+
+    // Search filter
+    if (filters.search) {
+      params.search = filters.search;
+    }
+
+    // Date preset filter
+    if (filters.datePreset) {
+      params.datePreset = filters.datePreset;
+    }
+
+    return params;
+  }, [filters, currentPage, perPage]);
+
+  // Fetch links using TanStack Query
+  const { data, isLoading, error, refetch } = useLinksQuery(apiFilters);
+
+  // Create and update mutations
+  const createMutation = useCreateLink();
+  const updateMutation = useUpdateLink();
 
   // Reset to page 1 when filters change
   useEffect(() => {
-    setCurrentPage(1)
-  }, [filters])
+    setCurrentPage(1);
+  }, [filters]);
 
-  // Filter links based on filters
-  const filteredLinks = useMemo(() => {
-    let result = [...mockCheckoutLinks]
-
-    // Filter by status
-    if (filters.statuses && filters.statuses.length > 0) {
-      result = result.filter(link => filters.statuses!.includes(link.status))
-    }
-
-    // Filter by recurring type
-    if (filters.isRecurring !== undefined && filters.isRecurring !== 'all') {
-      result = result.filter(link => link.isRecurring === filters.isRecurring)
-    }
-
-    // Filter by search (name or URL)
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
-      result = result.filter(
-        link =>
-          link.name.toLowerCase().includes(searchLower) ||
-          link.url.toLowerCase().includes(searchLower) ||
-          link.description?.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return result
-  }, [filters])
-
-  // Paginate
-  const paginatedLinks = useMemo(() => {
-    const startIndex = (currentPage - 1) * perPage
-    const endIndex = startIndex + perPage
-    return filteredLinks.slice(startIndex, endIndex)
-  }, [filteredLinks, currentPage, perPage])
-
-  const totalPages = Math.ceil(filteredLinks.length / perPage)
-
-  // Calculate stats based on filtered links
-  const stats: LinkStats = useMemo(() => {
-    const activeLinks = filteredLinks.filter(l => l.status === 'active')
-    const totalConversions = filteredLinks.reduce((sum, link) => sum + link.conversions, 0)
-    const totalViews = filteredLinks.reduce((sum, link) => sum + link.views, 0)
-    const avgConversion = totalViews > 0 ? (totalConversions / totalViews) * 100 : 0
-
-    return {
-      totalActive: activeLinks.length,
-      totalCreated: filteredLinks.length,
-      averageConversion: parseFloat(avgConversion.toFixed(1)),
-      totalRevenue: filteredLinks.reduce((sum, link) => sum + (link.amount * link.totalPayments), 0),
-      totalRevenueUSD: filteredLinks.reduce((sum, link) => sum + (link.amountUSD * link.totalPayments), 0)
-    }
-  }, [filteredLinks])
+  // Extract and transform data from response
+  const links: CheckoutLink[] = data ? transformCheckoutLinks(data.links) : [];
+  const stats: LinkStats = data?.stats || {
+    totalActive: 0,
+    totalCreated: 0,
+    averageConversion: 0,
+    totalRevenue: 0,
+    totalRevenueUSD: 0,
+  };
+  const pagination = data?.pagination || {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  };
 
   return {
-    links: paginatedLinks,
+    // Data
+    links,
     stats,
-    loading,
-    totalPages,
-    currentPage,
+    totalPages: pagination.totalPages,
+    currentPage: pagination.page,
+    perPage: pagination.limit,
+    totalItems: pagination.total,
+
+    // State
+    loading: isLoading,
+    error,
+
+    // Actions
     setPage: setCurrentPage,
-    perPage,
-    setPerPage,
-    totalItems: filteredLinks.length
-  }
+    setPerPage: (newPerPage: number) => {
+      setPerPage(newPerPage);
+      setCurrentPage(1); // Reset to first page when changing items per page
+    },
+    refetch,
+
+    // Mutations
+    createLink: createMutation.mutate,
+    createLinkAsync: createMutation.mutateAsync,
+    isCreating: createMutation.isPending,
+    createError: createMutation.error,
+
+    updateLink: updateMutation.mutate,
+    updateLinkAsync: updateMutation.mutateAsync,
+    isUpdating: updateMutation.isPending,
+    updateError: updateMutation.error,
+  };
 }
+
+/**
+ * Hook for fetching a single link details
+ * Used in detail pages
+ */
+export { useLinkQuery as useLinkDetails } from './useLinkQueries';
