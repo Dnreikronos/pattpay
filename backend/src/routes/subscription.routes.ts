@@ -1,15 +1,14 @@
 import { type FastifyInstance } from "fastify";
 import {
-  createSubscription,
-  getSubscriptions,
-  getSubscription,
   cancelSubscription,
+  createSubscription,
+  getSubscription,
+  getSubscriptions,
 } from "../controllers/subscription.controller.js";
 import type {
   CreateSubscriptionBody,
   GetSubscriptionQuery,
   subscriptionIdParam,
-  CancelSubscriptionBody,
 } from "../schemas/subscription.schema.js";
 
 export async function subscriptionRoutes(fastify: FastifyInstance) {
@@ -314,86 +313,83 @@ export async function subscriptionRoutes(fastify: FastifyInstance) {
   });
 
   // DELETE /api/subscriptions/:id - Cancel subscription after on-chain revoke
-  fastify.delete<{ Params: subscriptionIdParam; Body: CancelSubscriptionBody }>(
-    "/:id",
-    {
-      onRequest: [fastify.authenticate],
-      schema: {
-        tags: ["Subscriptions"],
-        summary: "Cancel subscription",
-        description:
-          "Cancel an active subscription after revoking delegate authority on-chain. " +
-          "Call this AFTER the user has revoked delegation via the revoke_delegate contract instruction. " +
-          "Once cancelled, the subscription cannot be reactivated - user must create new subscription. " +
-          "The relayer will no longer charge this subscription.",
-        security: [{ bearerAuth: [] }],
-        params: {
-          type: "object",
-          required: ["id"],
-          properties: {
-            id: {
-              type: "string",
-              format: "uuid",
-              description: "Subscription ID to cancel",
-            },
-          },
-        },
-        body: {
-          type: "object",
-          required: ["revokeTxSignature"],
-          properties: {
-            revokeTxSignature: {
-              type: "string",
-              description:
-                "Transaction signature from on-chain revoke_delegate instruction. " +
-                "This proves the user actually revoked the delegation on-chain and closed the PDA.",
-            },
-          },
-        },
-        response: {
-          200: {
-            description:
-              "Subscription cancelled successfully. Status changed to CANCELLED.",
-            type: "object",
-            properties: {
-              id: { type: "string", format: "uuid" },
-              status: {
-                type: "string",
-                enum: ["CANCELLED"],
-                description: "Status is now CANCELLED",
-              },
-              payer: {
-                type: "object",
-                description: "Payer information",
-              },
-              plan: {
-                type: "object",
-                description: "Plan information",
-              },
-            },
-          },
-          404: {
-            description:
-              "Subscription not found or doesn't belong to this receiver",
-            type: "object",
-            properties: {
-              statusCode: { type: "integer" },
-              error: { type: "string" },
-              message: { type: "string" },
-            },
-          },
-          400: {
-            description: "Subscription already cancelled or validation error",
-            type: "object",
-            properties: {
-              statusCode: { type: "integer" },
-              error: { type: "string" },
-              message: { type: "string" },
-            },
+  fastify.delete<{ Params: subscriptionIdParam }>("/:id", {
+    onRequest: [fastify.authenticate],
+    schema: {
+      tags: ["Subscriptions"],
+      summary: "Cancel subscription",
+      description:
+        "Cancel an active subscription after revoking delegate authority on-chain. " +
+        "Call this AFTER the user has revoked delegation via the revoke_delegate contract instruction. " +
+        "Once cancelled, the subscription cannot be reactivated - user must create new subscription. " +
+        "The relayer will no longer charge this subscription.",
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            description: "Subscription ID to cancel",
           },
         },
       },
-      handler: cancelSubscription,
-    }
-  );
+      body: {
+        type: "object",
+        required: ["revokeTxSignature"],
+        properties: {
+          revokeTxSignature: {
+            type: "string",
+            description:
+              "Transaction signature from on-chain revoke_delegate instruction. " +
+              "This proves the user actually revoked the delegation on-chain and closed the PDA.",
+          },
+        },
+      },
+      response: {
+        200: {
+          description:
+            "Subscription cancelled successfully. Status changed to CANCELLED.",
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            status: {
+              type: "string",
+              enum: ["CANCELLED"],
+              description: "Status is now CANCELLED",
+            },
+            payer: {
+              type: "object",
+              description: "Payer information",
+            },
+            plan: {
+              type: "object",
+              description: "Plan information",
+            },
+          },
+        },
+        404: {
+          description:
+            "Subscription not found or doesn't belong to this receiver",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+        400: {
+          description: "Subscription already cancelled or validation error",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+    handler: cancelSubscription,
+  });
 }
