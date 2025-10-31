@@ -150,7 +150,7 @@ export function SignupForm() {
             Token Accounts (Required)
           </h4>
           <p className="text-xs text-muted">
-            SPL token accounts where you'll receive USDT and USDC payments
+            SPL token accounts where you&apos;ll receive USDT and USDC payments
           </p>
         </div>
 
@@ -200,7 +200,7 @@ export function SignupForm() {
 
         <div className="pt-2 border-t border-border">
           <p className="text-xs text-muted">
-            💡 <strong>Tip:</strong> You can find these addresses in your Solana wallet under "Tokens" or by using{' '}
+            💡 <strong>Tip:</strong> You can find these addresses in your Solana wallet under &quot;Tokens&quot; or by using{' '}
             <a
               href="https://solscan.io"
               target="_blank"
