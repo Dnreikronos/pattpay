@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { type FastifyReply, type FastifyRequest } from "fastify";
 import { z } from "zod";
+import { config } from "../config.js";
 import { getTokenConfig } from "../constants/tokens.js";
 import { prisma } from "../db.js";
 import {
@@ -20,6 +21,8 @@ export const createPlanController = async (
   reply: FastifyReply
 ) => {
   try {
+    const frontendUrl =
+      config.FRONTEND_URL.split(",")[0] || "http://localhost:3000";
     const validatedData = createPlanSchema.parse(request.body);
     const userId = request.user.userId;
 
@@ -96,7 +99,7 @@ export const createPlanController = async (
     });
 
     // Generate checkout link URL
-    const paymentUrl = `${process.env.FRONTEND_URL}/checkout/${result.plan.id}`;
+    const paymentUrl = `${frontendUrl}/payment/${result.plan.id}`;
 
     return reply.code(201).send({
       link: {
