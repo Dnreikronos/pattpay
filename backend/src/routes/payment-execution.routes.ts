@@ -49,8 +49,7 @@ export async function paymentExecutionRoutes(fastify: FastifyInstance) {
           },
           amount: {
             type: "number",
-            minimum: 0,
-            exclusiveMinimum: true,
+            exclusiveMinimum: 0,
             description: "Amount paid (in token units, e.g., 10.5 USDC)",
           },
           executedBy: {

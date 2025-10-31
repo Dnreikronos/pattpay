@@ -326,6 +326,79 @@ export const getPlanByIdController = async (
   }
 };
 
+export const getPublicPlanByIdController = async (
+  request: FastifyRequest<{ Params: PlanIdParam }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = planIdParamSchema.parse(request.params);
+
+    // Query plan with relations (no user check, but include full receiver for type safety)
+    const plan = await prisma.plan.findUnique({
+      where: {
+        id: validatedParams.id,
+      },
+      include: {
+        receiver: true,
+        planTokens: true,
+        _count: {
+          select: {
+            paymentExecutions: true,
+          },
+        },
+      },
+    });
+
+    // Check if plan exists
+    if (!plan) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payment link not found",
+      });
+    }
+
+    // Check if plan is active
+    if (plan.status !== "ACTIVE") {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payment link is not active",
+      });
+    }
+
+    // Check if plan is expired
+    if (plan.expiresAt && plan.expiresAt < new Date()) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payment link has expired",
+      });
+    }
+
+    // Transform to frontend format
+    const link = transformPlanToCheckoutLink(plan);
+
+    return reply.code(200).send({ link });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Invalid plan ID",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
+
 export const updatePlanController = async (
   request: FastifyRequest<{ Params: PlanIdParam; Body: UpdatePlanBody }>,
   reply: FastifyReply

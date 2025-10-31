@@ -222,6 +222,26 @@ export const linksApi = {
   },
 
   /**
+   * Get a payment link by ID (public access - no authentication required)
+   */
+  async getByIdPublic(id: string): Promise<{ link: CheckoutLinkResponse }> {
+    const response = await fetch(`${API_URL}/api/links/public/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      throw new LinkApiError(json.statusCode, json.error, json.message);
+    }
+
+    return json;
+  },
+
+  /**
    * Update a payment link
    */
   async update(

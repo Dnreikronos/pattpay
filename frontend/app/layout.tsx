@@ -3,6 +3,7 @@ import { DM_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/lib/providers/query-provider";
+import { WalletProvider } from "@/lib/providers/wallet-provider";
 import { Toaster } from "sonner";
 
 const dmMono = DM_Mono({
@@ -34,22 +35,24 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${dmMono.variable} ${pressStart.variable} antialiased`}>
         <QueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-              toastOptions={{
-                className: 'font-mono text-sm',
-              }}
-            />
-          </ThemeProvider>
+          <WalletProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                toastOptions={{
+                  className: 'font-mono text-sm',
+                }}
+              />
+            </ThemeProvider>
+          </WalletProvider>
         </QueryProvider>
       </body>
     </html>

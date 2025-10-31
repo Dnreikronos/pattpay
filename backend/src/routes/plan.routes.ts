@@ -3,6 +3,7 @@ import {
   createPlanController,
   getAllPlansController,
   getPlanByIdController,
+  getPublicPlanByIdController,
   updatePlanController,
 } from "../controllers/plan.controller.js";
 import type {
@@ -249,6 +250,86 @@ export async function planRoutes(fastify: FastifyInstance) {
       },
     },
     handler: getAllPlansController,
+  });
+
+  // GET /api/links/public/:id - Get payment link by ID (PUBLIC - No authentication)
+  fastify.get<{ Params: PlanIdParam }>("/public/:id", {
+    schema: {
+      tags: ["Payment Links"],
+      summary: "Get payment link by ID (Public)",
+      description: "Retrieve a specific payment link for public checkout pages. No authentication required. Only returns active, non-expired links.",
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: {
+          id: {
+            type: "string",
+            format: "uuid",
+            description: "Payment link ID",
+          },
+        },
+      },
+      response: {
+        200: {
+          description: "Payment link details",
+          type: "object",
+          properties: {
+            link: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                amountUSDC: { type: "number" },
+                amountUSDT: { type: "number" },
+                status: { type: "string", enum: ["active", "inactive"] },
+                url: { type: "string" },
+                isRecurring: { type: "boolean" },
+                redirectUrl: { type: "string" },
+                description: { type: "string" },
+                createdAt: { type: "string", format: "date-time" },
+                totalPayments: { type: "integer" },
+                conversions: { type: "integer" },
+                views: { type: "integer" },
+                expiresAt: { type: "string", format: "date-time" },
+                durationMonths: { type: "integer" },
+                periodSeconds: { type: "integer" },
+                tokenPrices: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      token: { type: "string" },
+                      tokenMint: { type: "string" },
+                      tokenDecimals: { type: "integer" },
+                      price: { type: "string" },
+                    },
+                  },
+                },
+                receiver: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    walletAddress: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        404: {
+          description: "Payment link not found, inactive, or expired",
+          type: "object",
+          properties: {
+            statusCode: { type: "integer" },
+            error: { type: "string" },
+            message: { type: "string" },
+          },
+        },
+      },
+    },
+    handler: getPublicPlanByIdController,
   });
 
   // GET /api/links/:id - Get payment link by ID

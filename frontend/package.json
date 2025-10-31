@@ -9,6 +9,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@dicebear/core": "^9.2.4",
     "@dicebear/pixel-art": "^9.2.4",
     "@hookform/resolvers": "^5.2.2",
@@ -22,6 +23,8 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@supabase/supabase-js": "^2.76.1",
     "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-table": "^8.21.3",

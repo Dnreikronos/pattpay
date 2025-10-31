@@ -23,7 +23,7 @@ export function useLinksQuery(filters?: LinkFiltersParams) {
 }
 
 /**
- * Query hook to fetch a single payment link by ID
+ * Query hook to fetch a single payment link by ID (authenticated)
  */
 export function useLinkQuery(id: string) {
   const token = TokenStorage.get();
@@ -36,5 +36,19 @@ export function useLinkQuery(id: string) {
     },
     enabled: !!token && !!id,
     staleTime: 60000, // 1 minute
+  });
+}
+
+/**
+ * Query hook to fetch a single payment link by ID (public - no auth required)
+ * Used for the public payment checkout page
+ */
+export function usePublicLinkQuery(id: string) {
+  return useQuery({
+    queryKey: ['public-link', id],
+    queryFn: () => linksApi.getByIdPublic(id),
+    enabled: !!id,
+    staleTime: 60000, // 1 minute
+    retry: 1, // Only retry once for public links
   });
 }
