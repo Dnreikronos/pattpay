@@ -23,7 +23,7 @@ export const payerIdParamSchema = z.object({
 export type PayerIdParam = z.infer<typeof payerIdParamSchema>;
 
 export const getPayersQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
+  page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
   search: z.string().optional(),
 });

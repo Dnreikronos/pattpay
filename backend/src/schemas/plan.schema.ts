@@ -20,8 +20,8 @@ export const createPlanSchema = z
       .array(tokenPriceSchema)
       .min(1, "At least one token price is required")
       .max(10, "Maximum 10 token prices allowed"),
-    durationMonths: z.number().int().positive().optional(),
-    periodSeconds: z.number().int().positive().optional(),
+    durationMonths: z.number().int().min(1).optional(),
+    periodSeconds: z.number().int().min(1).optional(),
   })
   .refine(
     (data) => {
@@ -54,7 +54,7 @@ export type CreatePlanBody = z.infer<typeof createPlanSchema>;
 
 // Query parameters for GET /api/links
 export const getLinksQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
+  page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
   status: z.enum(["ACTIVE", "INACTIVE", "all"]).default("all"),
   isRecurring: z.enum(["true", "false", "all"]).default("all"),

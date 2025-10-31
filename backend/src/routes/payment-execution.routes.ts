@@ -50,6 +50,7 @@ export async function paymentExecutionRoutes(fastify: FastifyInstance) {
           amount: {
             type: "number",
             exclusiveMinimum: 0,
+            minimum: 0.000001,
             description: "Amount paid (in token units, e.g., 10.5 USDC)",
           },
           executedBy: {
@@ -263,7 +264,8 @@ export async function paymentExecutionRoutes(fastify: FastifyInstance) {
           },
         },
         403: {
-          description: "You do not have permission to view this payment execution",
+          description:
+            "You do not have permission to view this payment execution",
           type: "object",
           properties: {
             statusCode: { type: "integer" },
@@ -285,4 +287,3 @@ export async function paymentExecutionRoutes(fastify: FastifyInstance) {
     handler: getPaymentExecution,
   });
 }
-
