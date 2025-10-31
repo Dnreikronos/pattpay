@@ -53,8 +53,13 @@ const buildServer = async () => {
   });
 
   await fastify.register(fastifyCors, {
-    origin: config.FRONTEND_URL,
+    origin:
+      config.CORS_ORIGINS.length === 1
+        ? config.CORS_ORIGINS[0]!
+        : config.CORS_ORIGINS,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   await fastify.register(fastifyJwt, {
@@ -79,7 +84,9 @@ const buildServer = async () => {
   await fastify.register(authRoutes, { prefix: "/api/auth" });
   await fastify.register(planRoutes, { prefix: "/api/links" });
   await fastify.register(payerRoutes, { prefix: "/api/payers" });
-  await fastify.register(paymentExecutionRoutes, { prefix: "/api/payment-executions" });
+  await fastify.register(paymentExecutionRoutes, {
+    prefix: "/api/payment-executions",
+  });
   await fastify.register(subscribeRoutes, { prefix: "/api/subscribe" });
   await fastify.register(subscriptionRoutes, { prefix: "/api/subscriptions" });
 
