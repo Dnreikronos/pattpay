@@ -9,7 +9,16 @@
   "instructions": [
     {
       "name": "approve_delegate",
-      "discriminator": [68, 6, 248, 64, 195, 222, 182, 223],
+      "discriminator": [
+        68,
+        6,
+        248,
+        64,
+        195,
+        222,
+        182,
+        223
+      ],
       "accounts": [
         {
           "name": "delegate_approval",
@@ -18,7 +27,16 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [100, 101, 108, 101, 103, 97, 116, 101]
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
               },
               {
                 "kind": "arg",
@@ -38,7 +56,18 @@
               {
                 "kind": "const",
                 "value": [
-                  100, 101, 108, 101, 103, 97, 116, 101, 95, 112, 100, 97
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101,
+                  95,
+                  112,
+                  100,
+                  97
                 ]
               }
             ]
@@ -84,7 +113,16 @@
     },
     {
       "name": "charge_subscription",
-      "discriminator": [121, 52, 210, 23, 3, 68, 86, 194],
+      "discriminator": [
+        121,
+        52,
+        210,
+        23,
+        3,
+        68,
+        86,
+        194
+      ],
       "accounts": [
         {
           "name": "delegate_approval",
@@ -93,7 +131,16 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [100, 101, 108, 101, 103, 97, 116, 101]
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
               },
               {
                 "kind": "arg",
@@ -114,7 +161,18 @@
               {
                 "kind": "const",
                 "value": [
-                  100, 101, 108, 101, 103, 97, 116, 101, 95, 112, 100, 97
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101,
+                  95,
+                  112,
+                  100,
+                  97
                 ]
               }
             ]
@@ -150,7 +208,16 @@
     },
     {
       "name": "revoke_delegate",
-      "discriminator": [142, 66, 98, 126, 102, 60, 92, 163],
+      "discriminator": [
+        142,
+        66,
+        98,
+        126,
+        102,
+        60,
+        92,
+        163
+      ],
       "accounts": [
         {
           "name": "delegate_approval",
@@ -159,7 +226,16 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [100, 101, 108, 101, 103, 97, 116, 101]
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101
+                ]
               },
               {
                 "kind": "arg",
@@ -189,7 +265,16 @@
   "accounts": [
     {
       "name": "DelegateApproval",
-      "discriminator": [41, 170, 124, 42, 55, 141, 43, 120]
+      "discriminator": [
+        41,
+        170,
+        124,
+        42,
+        55,
+        141,
+        43,
+        120
+      ]
     }
   ],
   "errors": [
@@ -202,6 +287,16 @@
       "code": 6001,
       "name": "InsufficientAllowance",
       "msg": "Insufficient allowance"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidTokenAccount",
+      "msg": "Invalid token account"
+    },
+    {
+      "code": 6003,
+      "name": "ArithmeticOverflow",
+      "msg": "Arithmetic overflow"
     }
   ],
   "types": [
