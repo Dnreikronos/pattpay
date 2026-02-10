@@ -21,7 +21,8 @@ describe("crypto", () => {
   let receiver: Keypair;
   let backend: Keypair;
   
-  const subscriptionId = "test-subscription-123";
+  // Use a UUID without hyphens (32 chars) to match production behavior
+  const subscriptionId = "a6d60718428e446ba9663f120f97b44b";
   const approvedAmount = 1000000;
 
   before(async () => {
