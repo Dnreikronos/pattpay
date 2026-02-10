@@ -79,13 +79,16 @@ export function useApproveDelegation() {
         const receiverPubkey = new PublicKey(receiverWallet);
         const tokenMintPubkey = new PublicKey(tokenMint);
 
+        // Strip hyphens from UUID to fit within Solana's 32-byte seed limit
+        const seedId = subscriptionId.replace(/-/g, "");
+
         // Derive PDAs (same as backend)
         console.log("Program ID:", program.programId.toString());
 
         const [delegateApprovalPDA] = PublicKey.findProgramAddressSync(
           [
             Buffer.from("delegate"),
-            Buffer.from(subscriptionId),
+            Buffer.from(seedId),
             payerPubkey.toBuffer(),
           ],
           program.programId
@@ -130,7 +133,7 @@ export function useApproveDelegation() {
         };
 
         const tx = await programMethods
-          .approveDelegate(subscriptionId, new anchor.BN(amountInSmallestUnit))
+          .approveDelegate(seedId, new anchor.BN(amountInSmallestUnit))
           .accounts({
             delegateApproval: delegateApprovalPDA,
             delegatePda: delegatePDA,
