@@ -29,10 +29,13 @@ export const initializeSolana = () => {
  * Derive PDA addresses needed for charge_subscription
  */
 export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
+  // Strip hyphens from UUID to fit within Solana's 32-byte seed limit
+  const seedId = subscriptionId.replace(/-/g, "");
+
   const [delegateApprovalPDA] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("delegate"),
-      Buffer.from(subscriptionId),
+      Buffer.from(seedId),
       payerPubkey.toBuffer(),
     ],
     PROGRAM_ID
@@ -81,9 +84,12 @@ export const executePayment = async (params: {
   const amountInSmallestUnit =
     params.amount * Math.pow(10, params.tokenDecimals);
 
+  // Strip hyphens from UUID to match PDA seed derivation
+  const seedId = params.subscriptionId.replace(/-/g, "");
+
   const tx = await (program.methods as any)
     .chargeSubscription(
-      params.subscriptionId,
+      seedId,
       new anchor.BN(amountInSmallestUnit)
     )
     .accounts({
