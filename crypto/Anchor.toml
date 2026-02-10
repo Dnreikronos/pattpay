@@ -5,14 +5,14 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-crypto = "BrBYcBHWA7LkqDfMGQucbs3uLS7DTGKTTzwqYiBVf9sH"
+crypto = "Exfqqq3q9uqYAL4z5X1G1y2hSt1A7urEQTHJnvFpzhXb"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Testnet"
-wallet = "~/.config/solana/id.json"
+cluster = "Devnet"
+wallet = "~/my-deploy-wallet.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
