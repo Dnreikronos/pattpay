@@ -106,7 +106,7 @@ export function CreateLinkModal({ open, onOpenChange }: CreateLinkModalProps) {
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       redirectUrl: formData.redirectUrl.trim() || undefined,
-      expiresAt: formData.expiresAt || undefined,
+      expiresAt: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : undefined,
       isRecurring: formData.isRecurring,
       durationMonths: formData.isRecurring ? parseInt(formData.durationMonths) : undefined,
       periodSeconds: formData.isRecurring ? parseInt(formData.periodSeconds) : undefined,
