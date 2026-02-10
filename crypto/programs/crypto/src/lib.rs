@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token};
 
-declare_id!("BrBYcBHWA7LkqDfMGQucbs3uLS7DTGKTTzwqYiBVf9sH");
+declare_id!("Exfqqq3q9uqYAL4z5X1G1y2hSt1A7urEQTHJnvFpzhXb");
 
 const AUTHORIZED_BACKEND: Pubkey = pubkey!("9eGNzLdmUw6M84oo1H4iR8KMwxUnDHMMr6q85h69eKDH");
 
@@ -172,7 +172,7 @@ pub struct DelegateApproval {
     pub receiver_token_account: Pubkey,
     pub approved_amount: u64,
     pub spent_amount: u64,
-    #[max_len(36)]
+    #[max_len(32)]
     pub subscription_id: String,
     pub created_at: i64,
     pub bump: u8,
