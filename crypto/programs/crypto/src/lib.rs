@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token};
+use anchor_spl::token::{self, Mint, Token, TokenAccount};
 
 declare_id!("Exfqqq3q9uqYAL4z5X1G1y2hSt1A7urEQTHJnvFpzhXb");
 
@@ -54,12 +54,17 @@ pub mod crypto {
 
         let delegate_approval = &mut ctx.accounts.delegate_approval;
 
+        let new_spent = delegate_approval
+            .spent_amount
+            .checked_add(amount)
+            .ok_or(error!(ErrorCode::ArithmeticOverflow))?;
+
         require!(
-            delegate_approval.spent_amount + amount <= delegate_approval.approved_amount,
+            new_spent <= delegate_approval.approved_amount,
             ErrorCode::InsufficientAllowance
         );
 
-        let seeds = &[b"delegate_pda".as_ref(), &[delegate_approval.bump]];
+        let seeds = &[b"delegate_pda".as_ref(), &[ctx.bumps.delegate_pda]];
         let signer = &[&seeds[..]];
 
         token::transfer(
@@ -75,7 +80,7 @@ pub mod crypto {
             amount,
         )?;
 
-        delegate_approval.spent_amount += amount;
+        delegate_approval.spent_amount = new_spent;
 
         Ok(())
     }
@@ -104,18 +109,22 @@ pub struct ApproveDelegate<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// CHECK: Receiver wallet
+    /// CHECK: Receiver wallet address
     pub receiver: UncheckedAccount<'info>,
 
-    /// CHECK: This is the payer's token account
-    #[account(mut)]
-    pub payer_token_account: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        token::mint = token_mint,
+        token::authority = payer,
+    )]
+    pub payer_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: This is the receiver's token account  
-    pub receiver_token_account: UncheckedAccount<'info>,
+    #[account(
+        token::mint = token_mint,
+    )]
+    pub receiver_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: Token mint
-    pub token_mint: UncheckedAccount<'info>,
+    pub token_mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
@@ -135,13 +144,17 @@ pub struct ChargeSubscription<'info> {
     /// CHECK: PDA with delegate authority
     pub delegate_pda: UncheckedAccount<'info>,
 
-    /// CHECK: This is the payer's token account
-    #[account(mut)]
-    pub payer_token_account: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        constraint = payer_token_account.key() == delegate_approval.payer_token_account @ ErrorCode::InvalidTokenAccount
+    )]
+    pub payer_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: This is the receiver's token account
-    #[account(mut)]
-    pub receiver_token_account: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        constraint = receiver_token_account.key() == delegate_approval.receiver_token_account @ ErrorCode::InvalidTokenAccount
+    )]
+    pub receiver_token_account: Account<'info, TokenAccount>,
 
     pub backend: Signer<'info>,
     pub token_program: Program<'info, Token>,
@@ -184,4 +197,8 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Insufficient allowance")]
     InsufficientAllowance,
+    #[msg("Invalid token account")]
+    InvalidTokenAccount,
+    #[msg("Arithmetic overflow")]
+    ArithmeticOverflow,
 }
