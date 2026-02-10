@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { type FastifyReply, type FastifyRequest } from "fastify";
 import { z } from "zod";
+import { config } from "../config.js";
 import { getTokenConfig } from "../constants/tokens.js";
 import { prisma } from "../db.js";
 import {
@@ -20,6 +21,8 @@ export const createPlanController = async (
   reply: FastifyReply
 ) => {
   try {
+    const frontendUrl =
+      config.FRONTEND_URL.split(",")[0] || "http://localhost:3000";
     const validatedData = createPlanSchema.parse(request.body);
     const userId = request.user.userId;
 
@@ -95,8 +98,8 @@ export const createPlanController = async (
       return { plan, tokens: createdTokens };
     });
 
-    // Generate payment link URL
-    const paymentUrl = `${process.env.FRONTEND_URL}/payment/${result.plan.id}`;
+    // Generate checkout link URL
+    const paymentUrl = `${frontendUrl}/payment/${result.plan.id}`;
 
     return reply.code(201).send({
       link: {
@@ -300,6 +303,79 @@ export const getPlanByIdController = async (
         statusCode: 404,
         error: "Not Found",
         message: "Payment link not found",
+      });
+    }
+
+    // Transform to frontend format
+    const link = transformPlanToCheckoutLink(plan);
+
+    return reply.code(200).send({ link });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Invalid plan ID",
+        details: error.issues,
+      });
+    }
+
+    request.log.error(error);
+    return reply.code(500).send({
+      statusCode: 500,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+};
+
+export const getPublicPlanByIdController = async (
+  request: FastifyRequest<{ Params: PlanIdParam }>,
+  reply: FastifyReply
+) => {
+  try {
+    const validatedParams = planIdParamSchema.parse(request.params);
+
+    // Query plan with relations (no user check, but include full receiver for type safety)
+    const plan = await prisma.plan.findUnique({
+      where: {
+        id: validatedParams.id,
+      },
+      include: {
+        receiver: true,
+        planTokens: true,
+        _count: {
+          select: {
+            paymentExecutions: true,
+          },
+        },
+      },
+    });
+
+    // Check if plan exists
+    if (!plan) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payment link not found",
+      });
+    }
+
+    // Check if plan is active
+    if (plan.status !== "ACTIVE") {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payment link is not active",
+      });
+    }
+
+    // Check if plan is expired
+    if (plan.expiresAt && plan.expiresAt < new Date()) {
+      return reply.code(404).send({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Payment link has expired",
       });
     }
 

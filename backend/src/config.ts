@@ -14,7 +14,7 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   PORT: z.string().default("3001"),
-  FRONTEND_URL: z.url("FRONTEND_URL must be a valid URL"),
+  FRONTEND_URL: z.string().min(1, "FRONTEND_URL is required"),
   SOLANA_NETWORK: z.enum(["mainnet", "devnet"]).default("mainnet"),
 });
 
@@ -34,4 +34,14 @@ const parseEnv = () => {
   }
 };
 
-export const config = parseEnv();
+const rawConfig = parseEnv();
+
+// Parse CORS origins from comma-separated FRONTEND_URL
+const corsOrigins = rawConfig.FRONTEND_URL.split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
+
+export const config = {
+  ...rawConfig,
+  CORS_ORIGINS: corsOrigins,
+};

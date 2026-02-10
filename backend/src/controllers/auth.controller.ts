@@ -93,6 +93,8 @@ export const signinController = async (
       },
     });
 
+    request.log.info({ receiver: receiver?.id }, 'Found receiver');
+
     if (!receiver || !receiver.passwordHash) {
       return reply.code(401).send({
         statusCode: 401,
@@ -120,10 +122,17 @@ export const signinController = async (
       authMethod: receiver.authMethod,
     });
 
-    return reply.code(200).send({
-      user: sanitizeUser(receiver),
+    const sanitizedUser = sanitizeUser(receiver);
+    request.log.info({ sanitizedUser, hasToken: !!token }, 'Before sending response');
+
+    const response = {
+      user: sanitizedUser,
       token,
-    });
+    };
+
+    request.log.info({ responseKeys: Object.keys(response), userKeys: sanitizedUser ? Object.keys(sanitizedUser) : [] }, 'Response structure');
+
+    return reply.code(200).send(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return reply.code(400).send({
@@ -148,6 +157,8 @@ export const getMeController = async (
   reply: FastifyReply
 ) => {
   try {
+    request.log.info({ user: request.user }, '/me - Request user from JWT');
+
     if (!request.user) {
       return reply.code(401).send({
         statusCode: 401,
@@ -160,6 +171,12 @@ export const getMeController = async (
       where: { id: request.user.userId },
     });
 
+    request.log.info({
+      foundReceiver: !!receiver,
+      receiverId: receiver?.id,
+      receiverEmail: receiver?.email
+    }, '/me - Receiver lookup result');
+
     if (!receiver) {
       return reply.code(404).send({
         statusCode: 404,
@@ -168,9 +185,23 @@ export const getMeController = async (
       });
     }
 
-    return reply.code(200).send({
-      user: sanitizeUser(receiver),
-    });
+    const sanitized = sanitizeUser(receiver);
+    request.log.info({
+      sanitizedKeys: Object.keys(sanitized),
+      sanitizedUser: sanitized
+    }, '/me - Sanitized user data');
+
+    const response = {
+      user: sanitized,
+    };
+
+    request.log.info({
+      responseKeys: Object.keys(response),
+      hasUser: !!response.user,
+      userKeys: response.user ? Object.keys(response.user) : []
+    }, '/me - Final response structure');
+
+    return reply.code(200).send(response);
   } catch (error) {
     request.log.error(error);
     return reply.code(500).send({

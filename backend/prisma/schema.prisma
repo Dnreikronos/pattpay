@@ -19,7 +19,7 @@ enum LinkStatus {
 
 model Payer {
   id            String   @id @default(uuid()) @db.Uuid
-  walletAddress String   @unique @map("wallet_address")
+  walletAddress String   @map("wallet_address")
   name          String
   email         String?
   createdAt     DateTime @default(now()) @map("created_at")
@@ -27,6 +27,7 @@ model Payer {
 
   subscriptions Subscription[]
 
+  @@unique([walletAddress, name])
   @@map("payers")
 }
 

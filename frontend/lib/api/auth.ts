@@ -1,11 +1,19 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+// Auth method constants
+export const AUTH_METHOD = {
+  EMAIL_PASSWORD: 'EMAIL_PASSWORD',
+  SOLANA_WALLET: 'SOLANA_WALLET',
+} as const;
+
+export type AuthMethodType = (typeof AUTH_METHOD)[keyof typeof AUTH_METHOD];
+
 // API response types
 export interface User {
   id: string;
   name: string;
   email: string;
-  authMethod: string;
+  authMethod: AuthMethodType;
   walletAddress: string;
   tokenAccountUSDT: string;
   tokenAccountUSDC: string;
@@ -51,7 +59,6 @@ export const authApi = {
     name: string;
     email: string;
     password: string;
-    description?: string;
     walletAddress: string;
     tokenAccountUSDT: string;
     tokenAccountUSDC: string;
@@ -61,7 +68,10 @@ export const authApi = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        authMethod: AUTH_METHOD.EMAIL_PASSWORD,
+      }),
     });
 
     const json = await response.json();
@@ -87,7 +97,10 @@ export const authApi = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        authMethod: AUTH_METHOD.EMAIL_PASSWORD,
+      }),
     });
 
     const json = await response.json();

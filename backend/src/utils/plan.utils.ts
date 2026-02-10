@@ -1,4 +1,5 @@
 import type { Plan, PlanToken, Receiver } from "@prisma/client";
+import { config } from "../config.js";
 
 // Type for Plan with relations needed for transformation
 export type PlanWithRelations = Plan & {
@@ -47,7 +48,8 @@ export interface CheckoutLink {
 export function transformPlanToCheckoutLink(
   plan: PlanWithRelations
 ): CheckoutLink {
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl =
+    config.FRONTEND_URL.split(",")[0] || "http://localhost:3000";
 
   // Extract USDC and USDT amounts from planTokens
   const usdcToken = plan.planTokens.find((t) => t.symbol === "USDC");

@@ -7,3 +7,9 @@ CLAUDE.md
 
 # Test coverage
 coverage
+
+# TypeScript build output
+build/
+
+# Keep source type definitions
+!src/types/**/*.d.ts

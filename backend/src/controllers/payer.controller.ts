@@ -20,8 +20,14 @@ export const createPayer = async (
   try {
     const validatedData = createPayerSchema.parse(request.body);
 
+    // Check if payer with this wallet address AND name combination already exists
     const existing = await prisma.payer.findUnique({
-      where: { walletAddress: validatedData.walletAddress },
+      where: {
+        walletAddress_name: {
+          walletAddress: validatedData.walletAddress,
+          name: validatedData.name,
+        }
+      },
       select: { id: true },
     });
 
@@ -29,7 +35,7 @@ export const createPayer = async (
       return reply.code(409).send({
         statusCode: 409,
         error: "Conflict",
-        message: "Wallet address already exists",
+        message: "Payer with this wallet address and name already exists",
       });
     }
 

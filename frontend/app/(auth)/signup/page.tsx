@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SignupForm } from '@/components/auth/SignupForm';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -8,31 +8,22 @@ import { useAuth } from '@/lib/hooks/useAuth';
 export default function SignupPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  // Only run on client side to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (mounted && !isLoading && isAuthenticated) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, mounted]);
 
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // If authenticated, don't render form (redirect will happen)
-  if (isAuthenticated) {
-    return null;
-  }
-
-  // Not authenticated - show signup form
+  // Always render the same structure on server and first client render
+  // to prevent hydration mismatch
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
@@ -44,7 +35,16 @@ export default function SignupPage() {
         </p>
       </div>
 
-      <SignupForm />
+      {/* Only show loading/form after mount to prevent hydration issues */}
+      {!mounted ? (
+        <div className="h-96" />
+      ) : isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
+        </div>
+      ) : isAuthenticated ? null : (
+        <SignupForm />
+      )}
     </div>
   );
 }
