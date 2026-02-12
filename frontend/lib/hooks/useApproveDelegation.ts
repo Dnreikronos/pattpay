@@ -9,6 +9,7 @@ import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
 import * as anchor from "@coral-xyz/anchor";
 import { useContract } from "./useContract";
@@ -25,6 +26,23 @@ export interface ApproveDelegationResult {
   txSignature: string;
   delegateAuthority: string; // PDA address
   delegateApprovedAt: string; // ISO 8601 timestamp
+}
+
+/**
+ * Detect which token program owns a mint by checking the account's owner
+ */
+async function getTokenProgramForMint(
+  connection: anchor.web3.Connection,
+  mintPubkey: PublicKey
+): Promise<PublicKey> {
+  const mintAccountInfo = await connection.getAccountInfo(mintPubkey);
+  if (!mintAccountInfo) {
+    throw new Error("Mint account not found");
+  }
+  if (mintAccountInfo.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+    return TOKEN_2022_PROGRAM_ID;
+  }
+  return TOKEN_PROGRAM_ID;
 }
 
 export function useApproveDelegation() {
@@ -88,6 +106,13 @@ export function useApproveDelegation() {
         const receiverPubkey = new PublicKey(receiverWallet);
         const tokenMintPubkey = new PublicKey(tokenMint);
 
+        // Detect which token program owns this mint (Token or Token-2022)
+        const tokenProgramId = await getTokenProgramForMint(
+          connection,
+          tokenMintPubkey
+        );
+        console.log("Detected token program:", tokenProgramId.toString());
+
         // Strip hyphens from UUID to fit within Solana's 32-byte seed limit
         const seedId = subscriptionId.replace(/-/g, "");
 
@@ -113,15 +138,19 @@ export function useApproveDelegation() {
           delegatePDA: delegatePDA.toString(),
         });
 
-        // Get Associated Token Accounts
+        // Get Associated Token Accounts (using the correct token program)
         const payerTokenAccount = await getAssociatedTokenAddress(
           tokenMintPubkey,
-          payerPubkey
+          payerPubkey,
+          false,
+          tokenProgramId
         );
 
         const receiverTokenAccount = await getAssociatedTokenAddress(
           tokenMintPubkey,
-          receiverPubkey
+          receiverPubkey,
+          false,
+          tokenProgramId
         );
 
         // Convert amount to smallest unit (with decimals)
@@ -139,7 +168,8 @@ export function useApproveDelegation() {
               payerPubkey,
               payerTokenAccount,
               payerPubkey,
-              tokenMintPubkey
+              tokenMintPubkey,
+              tokenProgramId
             )
           );
         }
@@ -153,7 +183,8 @@ export function useApproveDelegation() {
               payerPubkey,
               receiverTokenAccount,
               receiverPubkey,
-              tokenMintPubkey
+              tokenMintPubkey,
+              tokenProgramId
             )
           );
         }
@@ -185,7 +216,7 @@ export function useApproveDelegation() {
             payerTokenAccount: payerTokenAccount,
             receiverTokenAccount: receiverTokenAccount,
             tokenMint: tokenMintPubkey,
-            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenProgram: tokenProgramId,
             systemProgram: SystemProgram.programId,
           })
           .preInstructions(preInstructions)

@@ -1,6 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
 import idl from "../idl/crypto.json" with { type: "json" };
 
 const PROGRAM_ID = new PublicKey(idl.address);
@@ -50,6 +54,23 @@ export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
 };
 
 /**
+ * Detect which token program owns a mint by checking the account's owner
+ */
+const getTokenProgramForMint = async (
+  connection: Connection,
+  mintPubkey: PublicKey
+): Promise<PublicKey> => {
+  const mintAccountInfo = await connection.getAccountInfo(mintPubkey);
+  if (!mintAccountInfo) {
+    throw new Error("Mint account not found");
+  }
+  if (mintAccountInfo.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+    return TOKEN_2022_PROGRAM_ID;
+  }
+  return TOKEN_PROGRAM_ID;
+};
+
+/**
  * Execute payment on-chain by calling charge_subscription
  */
 export const executePayment = async (params: {
@@ -66,6 +87,12 @@ export const executePayment = async (params: {
   const receiverPubkey = new PublicKey(params.receiverWallet);
   const tokenMintPubkey = new PublicKey(params.tokenMint);
 
+  // Detect which token program owns this mint (Token or Token-2022)
+  const tokenProgramId = await getTokenProgramForMint(
+    connection,
+    tokenMintPubkey
+  );
+
   const { delegateApprovalPDA, delegatePDA } = derivePDAs(
     params.subscriptionId,
     payerPubkey
@@ -73,12 +100,16 @@ export const executePayment = async (params: {
 
   const payerTokenAccount = await getAssociatedTokenAddress(
     tokenMintPubkey,
-    payerPubkey
+    payerPubkey,
+    false,
+    tokenProgramId
   );
 
   const receiverTokenAccount = await getAssociatedTokenAddress(
     tokenMintPubkey,
-    receiverPubkey
+    receiverPubkey,
+    false,
+    tokenProgramId
   );
 
   const amountInSmallestUnit =
@@ -97,8 +128,9 @@ export const executePayment = async (params: {
       delegatePda: delegatePDA,
       payerTokenAccount: payerTokenAccount,
       receiverTokenAccount: receiverTokenAccount,
+      tokenMint: tokenMintPubkey,
       backend: BACKEND_KEYPAIR.publicKey,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenProgram: tokenProgramId,
     })
     .rpc();
 
