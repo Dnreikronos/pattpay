@@ -87,11 +87,11 @@ export function useTransferTokens() {
         if (!mintAccountInfo) {
           throw new Error("Mint account not found");
         }
-        const tokenProgramId = mintAccountInfo.owner.equals(
-          TOKEN_2022_PROGRAM_ID
-        )
-          ? TOKEN_2022_PROGRAM_ID
-          : TOKEN_PROGRAM_ID;
+        // Use string comparison to avoid PublicKey class mismatch across package versions
+        const tokenProgramId =
+          mintAccountInfo.owner.toBase58() === TOKEN_2022_PROGRAM_ID.toBase58()
+            ? TOKEN_2022_PROGRAM_ID
+            : TOKEN_PROGRAM_ID;
         console.log("Detected token program:", tokenProgramId.toString());
 
         // Get Associated Token Accounts (using the correct token program)
