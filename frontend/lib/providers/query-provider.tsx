@@ -14,7 +14,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             retry: 1,
           },
           mutations: {
-            retry: 1,
+            retry: 0,
           },
         },
       })
