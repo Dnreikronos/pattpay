@@ -64,7 +64,8 @@ const getTokenProgramForMint = async (
   if (!mintAccountInfo) {
     throw new Error("Mint account not found");
   }
-  if (mintAccountInfo.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+  // Use string comparison to avoid PublicKey class mismatch across package versions
+  if (mintAccountInfo.owner.toBase58() === TOKEN_2022_PROGRAM_ID.toBase58()) {
     return TOKEN_2022_PROGRAM_ID;
   }
   return TOKEN_PROGRAM_ID;
