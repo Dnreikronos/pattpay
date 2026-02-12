@@ -215,10 +215,25 @@ export default function PaymentPage({ params }: PaymentPageProps) {
       // Navigate to success page
       window.location.href = `/payment/success?${params.toString()}`;
     } catch (error) {
-      const errorMessage =
+      const rawMessage =
         error instanceof Error ? error.message : "Failed to activate subscription";
+
+      // Translate common on-chain errors into user-friendly messages
+      let userMessage: string;
+      if (rawMessage.includes("already in use")) {
+        userMessage =
+          "You already have an active subscription for this plan. Please cancel the existing one before subscribing again.";
+      } else if (rawMessage.includes("insufficient funds") || rawMessage.includes("Insufficient")) {
+        userMessage =
+          "Insufficient funds in your wallet. Please add tokens and try again.";
+      } else if (rawMessage.includes("User rejected")) {
+        userMessage = "Transaction was cancelled.";
+      } else {
+        userMessage = rawMessage;
+      }
+
       toast.error("Subscription Failed", {
-        description: errorMessage,
+        description: userMessage,
       });
     }
   };
