@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface};
 
 declare_id!("Exfqqq3q9uqYAL4z5X1G1y2hSt1A7urEQTHJnvFpzhXb");
 
@@ -27,10 +27,10 @@ pub mod crypto {
         delegate_approval.created_at = Clock::get()?.unix_timestamp;
         delegate_approval.bump = ctx.bumps.delegate_approval;
 
-        token::approve(
+        token_interface::approve(
             CpiContext::new(
                 ctx.accounts.token_program.to_account_info(),
-                token::Approve {
+                token_interface::Approve {
                     to: ctx.accounts.payer_token_account.to_account_info(),
                     delegate: ctx.accounts.delegate_pda.to_account_info(),
                     authority: ctx.accounts.payer.to_account_info(),
@@ -67,17 +67,19 @@ pub mod crypto {
         let seeds = &[b"delegate_pda".as_ref(), &[ctx.bumps.delegate_pda]];
         let signer = &[&seeds[..]];
 
-        token::transfer(
+        token_interface::transfer_checked(
             CpiContext::new_with_signer(
                 ctx.accounts.token_program.to_account_info(),
-                token::Transfer {
+                token_interface::TransferChecked {
                     from: ctx.accounts.payer_token_account.to_account_info(),
+                    mint: ctx.accounts.token_mint.to_account_info(),
                     to: ctx.accounts.receiver_token_account.to_account_info(),
                     authority: ctx.accounts.delegate_pda.to_account_info(),
                 },
                 signer,
             ),
             amount,
+            ctx.accounts.token_mint.decimals,
         )?;
 
         delegate_approval.spent_amount = new_spent;
@@ -117,16 +119,16 @@ pub struct ApproveDelegate<'info> {
         token::mint = token_mint,
         token::authority = payer,
     )]
-    pub payer_token_account: Account<'info, TokenAccount>,
+    pub payer_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         token::mint = token_mint,
     )]
-    pub receiver_token_account: Account<'info, TokenAccount>,
+    pub receiver_token_account: InterfaceAccount<'info, TokenAccount>,
 
-    pub token_mint: Account<'info, Mint>,
+    pub token_mint: InterfaceAccount<'info, Mint>,
 
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
 
@@ -148,16 +150,21 @@ pub struct ChargeSubscription<'info> {
         mut,
         constraint = payer_token_account.key() == delegate_approval.payer_token_account @ ErrorCode::InvalidTokenAccount
     )]
-    pub payer_token_account: Account<'info, TokenAccount>,
+    pub payer_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         mut,
         constraint = receiver_token_account.key() == delegate_approval.receiver_token_account @ ErrorCode::InvalidTokenAccount
     )]
-    pub receiver_token_account: Account<'info, TokenAccount>,
+    pub receiver_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(
+        constraint = token_mint.key() == delegate_approval.token_mint @ ErrorCode::InvalidTokenAccount
+    )]
+    pub token_mint: InterfaceAccount<'info, Mint>,
 
     pub backend: Signer<'info>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 #[derive(Accounts)]
