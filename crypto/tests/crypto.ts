@@ -1,10 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Crypto } from "../target/types/crypto";
-import { 
-  createMint, 
-  getOrCreateAssociatedTokenAccount, 
-  mintTo 
+import {
+  createMint,
+  getOrCreateAssociatedTokenAccount,
+  mintTo
 } from "@solana/spl-token";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { assert } from "chai";
@@ -14,13 +14,13 @@ describe("crypto", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.Crypto as Program<Crypto>;
-  
+
   let tokenMint: PublicKey;
   let payerTokenAccount: PublicKey;
   let receiverTokenAccount: PublicKey;
   let receiver: Keypair;
   let backend: Keypair;
-  
+
   // Use a UUID without hyphens (32 chars) to match production behavior
   const subscriptionId = "a6d60718428e446ba9663f120f97b44b";
   const approvedAmount = 1000000;
@@ -120,8 +120,8 @@ describe("crypto", () => {
         delegatePda,
         payerTokenAccount,
         receiverTokenAccount,
+        tokenMint,
         backend: backend.publicKey,
-        tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
       })
       .signers([backend])
       .rpc();
@@ -160,12 +160,12 @@ describe("crypto", () => {
           delegatePda,
           payerTokenAccount,
           receiverTokenAccount,
+          tokenMint,
           backend: unauthorized.publicKey,
-          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
         })
         .signers([unauthorized])
         .rpc();
-      
+
       assert.fail("Should have failed with unauthorized");
     } catch (err) {
       assert.include(err.toString(), "Unauthorized");

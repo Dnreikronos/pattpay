@@ -1,13 +1,16 @@
 /**
  * Hook to transfer tokens for one-time payments
- * Uses SPL Token transfer
+ * Uses SPL Token transfer (supports both Token and Token-2022)
  */
 
 import { useState, useCallback } from "react";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
-  createTransferInstruction,
+  createTransferCheckedInstruction,
+  createAssociatedTokenAccountInstruction,
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
 import { useContract } from "./useContract";
 
@@ -77,16 +80,34 @@ export function useTransferTokens() {
         const tokenMintPubkey = new PublicKey(tokenMint);
         console.log("Step 2: Addresses converted to PublicKey");
 
-        // Get Associated Token Accounts
-        console.log("Step 3: Getting token accounts...");
+        // Detect which token program owns this mint (Token or Token-2022)
+        console.log("Step 3: Detecting token program...");
+        const mintAccountInfo =
+          await connection.getAccountInfo(tokenMintPubkey);
+        if (!mintAccountInfo) {
+          throw new Error("Mint account not found");
+        }
+        const tokenProgramId = mintAccountInfo.owner.equals(
+          TOKEN_2022_PROGRAM_ID
+        )
+          ? TOKEN_2022_PROGRAM_ID
+          : TOKEN_PROGRAM_ID;
+        console.log("Detected token program:", tokenProgramId.toString());
+
+        // Get Associated Token Accounts (using the correct token program)
+        console.log("Step 4: Getting token accounts...");
         const fromTokenAccount = await getAssociatedTokenAddress(
           tokenMintPubkey,
-          fromPubkey
+          fromPubkey,
+          false,
+          tokenProgramId
         );
 
         const toTokenAccount = await getAssociatedTokenAddress(
           tokenMintPubkey,
-          toPubkey
+          toPubkey,
+          false,
+          tokenProgramId
         );
         console.log("Token accounts:", {
           from: fromTokenAccount.toString(),
@@ -97,40 +118,60 @@ export function useTransferTokens() {
         const amountInSmallestUnit = Math.floor(
           amount * Math.pow(10, tokenDecimals)
         );
-        console.log("Step 4: Amount converted:", amountInSmallestUnit);
+        console.log("Step 5: Amount converted:", amountInSmallestUnit);
 
-        // Create transfer instruction
-        console.log("Step 5: Creating transfer instruction...");
-        const transferInstruction = createTransferInstruction(
-          fromTokenAccount,
-          toTokenAccount,
-          fromPubkey,
-          amountInSmallestUnit
+        // Build transaction
+        console.log("Step 6: Creating transaction...");
+        const transaction = new Transaction();
+
+        // Create receiver ATA if it doesn't exist
+        const toAtaInfo = await connection.getAccountInfo(toTokenAccount);
+        if (!toAtaInfo) {
+          transaction.add(
+            createAssociatedTokenAccountInstruction(
+              fromPubkey,
+              toTokenAccount,
+              toPubkey,
+              tokenMintPubkey,
+              tokenProgramId
+            )
+          );
+        }
+
+        // Use transferChecked for Token-2022 compatibility
+        transaction.add(
+          createTransferCheckedInstruction(
+            fromTokenAccount,
+            tokenMintPubkey,
+            toTokenAccount,
+            fromPubkey,
+            amountInSmallestUnit,
+            tokenDecimals,
+            [],
+            tokenProgramId
+          )
         );
-
-        // Create transaction
-        const transaction = new Transaction().add(transferInstruction);
-        console.log("Step 6: Transaction created");
+        console.log("Step 7: Transaction created");
 
         // Get recent blockhash
-        console.log("Step 7: Getting recent blockhash...");
+        console.log("Step 8: Getting recent blockhash...");
         const { blockhash, lastValidBlockHeight } =
           await connection.getLatestBlockhash();
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = fromPubkey;
-        console.log("Step 8: Blockhash set");
+        console.log("Step 9: Blockhash set");
 
-        console.log("Step 9: Sending transaction to Phantom for signing...");
+        console.log("Step 10: Sending transaction to Phantom for signing...");
 
         // Sign and send transaction via Phantom
         const signed = await phantomProvider.signAndSendTransaction(
           transaction
         );
 
-        console.log("Step 10: Transaction signed, signature:", signed.signature);
+        console.log("Step 11: Transaction signed, signature:", signed.signature);
 
         // Wait for confirmation
-        console.log("Step 11: Waiting for confirmation...");
+        console.log("Step 12: Waiting for confirmation...");
         await connection.confirmTransaction(
           {
             signature: signed.signature,
@@ -140,7 +181,7 @@ export function useTransferTokens() {
           "confirmed"
         );
 
-        console.log("Step 12: Transaction confirmed!");
+        console.log("Step 13: Transaction confirmed!");
 
         setIsLoading(false);
 
