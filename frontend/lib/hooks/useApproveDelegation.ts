@@ -3,10 +3,11 @@
  * Calls the approve_delegate instruction on the PattPay contract
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import * as anchor from "@coral-xyz/anchor";
@@ -30,17 +31,25 @@ export function useApproveDelegation() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { program, connection, isReady } = useContract();
+  const isExecutingRef = useRef(false);
 
   const approveDelegation = useCallback(
     async (
       params: ApproveDelegationParams
     ): Promise<ApproveDelegationResult> => {
+      // Prevent double execution
+      if (isExecutingRef.current) {
+        throw new Error("Transaction already in progress");
+      }
+      isExecutingRef.current = true;
+
       console.log("=== approveDelegation called ===");
       console.log("isReady:", isReady);
       console.log("program:", !!program);
       console.log("connection:", !!connection);
 
       if (!isReady || !program || !connection) {
+        isExecutingRef.current = false;
         const error = `Contract not ready. isReady: ${isReady}, program: ${!!program}, connection: ${!!connection}`;
         console.error(error);
         throw new Error(error);
@@ -120,6 +129,35 @@ export function useApproveDelegation() {
           approvedAmount * Math.pow(10, tokenDecimals)
         );
 
+        // Build pre-instructions to create ATAs if they don't exist
+        const preInstructions = [];
+
+        const payerAtaInfo = await connection.getAccountInfo(payerTokenAccount);
+        if (!payerAtaInfo) {
+          preInstructions.push(
+            createAssociatedTokenAccountInstruction(
+              payerPubkey,
+              payerTokenAccount,
+              payerPubkey,
+              tokenMintPubkey
+            )
+          );
+        }
+
+        const receiverAtaInfo = await connection.getAccountInfo(
+          receiverTokenAccount
+        );
+        if (!receiverAtaInfo) {
+          preInstructions.push(
+            createAssociatedTokenAccountInstruction(
+              payerPubkey,
+              receiverTokenAccount,
+              receiverPubkey,
+              tokenMintPubkey
+            )
+          );
+        }
+
         // Call approve_delegate instruction
         const programMethods = program.methods as unknown as {
           approveDelegate: (
@@ -127,6 +165,11 @@ export function useApproveDelegation() {
             approvedAmount: anchor.BN
           ) => {
             accounts: (accounts: Record<string, unknown>) => {
+              preInstructions: (
+                ixs: anchor.web3.TransactionInstruction[]
+              ) => {
+                rpc: () => Promise<string>;
+              };
               rpc: () => Promise<string>;
             };
           };
@@ -145,6 +188,7 @@ export function useApproveDelegation() {
             tokenProgram: TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           })
+          .preInstructions(preInstructions)
           .rpc();
 
         // Wait for confirmation
@@ -154,6 +198,7 @@ export function useApproveDelegation() {
         const delegateApprovedAt = new Date().toISOString();
 
         setIsLoading(false);
+        isExecutingRef.current = false;
 
         return {
           txSignature: tx,
@@ -165,6 +210,7 @@ export function useApproveDelegation() {
           err instanceof Error ? err.message : "Failed to approve delegation";
         setError(errorMessage);
         setIsLoading(false);
+        isExecutingRef.current = false;
         throw new Error(errorMessage);
       }
     },
