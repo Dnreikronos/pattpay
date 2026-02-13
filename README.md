@@ -202,7 +202,16 @@ pattpay/
 │   └── prisma/                 # Schema + migrations
 │
 ├── crypto/
-│   ├── programs/crypto/src/    # Anchor program (Rust)
+│   ├── programs/crypto/src/
+│   │   ├── lib.rs              # Program entry point
+│   │   ├── constants.rs        # Authorized backend, seeds
+│   │   ├── errors.rs           # Custom error codes
+│   │   ├── state/              # Account data structures
+│   │   │   └── delegate_approval.rs
+│   │   └── instructions/       # Instruction handlers + contexts
+│   │       ├── approve_delegate.rs
+│   │       ├── charge_subscription.rs
+│   │       └── revoke_delegate.rs
 │   └── tests/                  # Integration tests
 │
 └── .github/workflows/          # CI/CD pipelines
