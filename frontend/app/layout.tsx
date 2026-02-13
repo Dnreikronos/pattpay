@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "pattpay",
   description: "pattpay - Payment platform",
   icons: {
-    icon: "/logo.svg",
+    icon: "/favicon.svg",
   },
 };
 
