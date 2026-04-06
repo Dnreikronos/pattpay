@@ -16,7 +16,7 @@ const PROGRAM_ID = new PublicKey(idl.address);
 const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
 
 const BACKEND_KEYPAIR = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(process.env.BACKEND_PRIVATE_KEY!))
+  Uint8Array.from(JSON.parse(process.env.BACKEND_PRIVATE_KEY!)),
 );
 
 export const initializeSolana = () => {
@@ -36,17 +36,13 @@ export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
   const seedId = subscriptionId.replace(/-/g, "");
 
   const [delegateApprovalPDA] = PublicKey.findProgramAddressSync(
-    [
-      Buffer.from("delegate"),
-      Buffer.from(seedId),
-      payerPubkey.toBuffer(),
-    ],
-    PROGRAM_ID
+    [Buffer.from("delegate"), Buffer.from(seedId), payerPubkey.toBuffer()],
+    PROGRAM_ID,
   );
 
   const [delegatePDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("delegate_pda")],
-    PROGRAM_ID
+    PROGRAM_ID,
   );
 
   return { delegateApprovalPDA, delegatePDA };
@@ -54,7 +50,7 @@ export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
 
 const getTokenProgramForMint = async (
   connection: Connection,
-  mintPubkey: PublicKey
+  mintPubkey: PublicKey,
 ): Promise<PublicKey> => {
   const mintAccountInfo = await connection.getAccountInfo(mintPubkey);
   if (!mintAccountInfo) {
@@ -84,39 +80,37 @@ export const executePayment = async (params: {
   // Detect which token program owns this mint (Token or Token-2022)
   const tokenProgramId = await getTokenProgramForMint(
     connection,
-    tokenMintPubkey
+    tokenMintPubkey,
   );
 
   const { delegateApprovalPDA, delegatePDA } = derivePDAs(
     params.subscriptionId,
-    payerPubkey
+    payerPubkey,
   );
 
   const payerTokenAccount = await getAssociatedTokenAddress(
     tokenMintPubkey,
     payerPubkey,
     false,
-    tokenProgramId
+    tokenProgramId,
   );
 
   const receiverTokenAccount = await getAssociatedTokenAddress(
     tokenMintPubkey,
     receiverPubkey,
     false,
-    tokenProgramId
+    tokenProgramId,
   );
 
-  const amountInSmallestUnit = new anchor.BN(params.amount)
-    .mul(new anchor.BN(10).pow(new anchor.BN(params.tokenDecimals)));
+  const amountInSmallestUnit = new anchor.BN(params.amount).mul(
+    new anchor.BN(10).pow(new anchor.BN(params.tokenDecimals)),
+  );
 
   // Strip hyphens from UUID to match PDA seed derivation
   const seedId = params.subscriptionId.replace(/-/g, "");
 
   const tx = await (program.methods as any)
-    .chargeSubscription(
-      seedId,
-      amountInSmallestUnit
-    )
+    .chargeSubscription(seedId, amountInSmallestUnit)
     .accounts({
       delegateApproval: delegateApprovalPDA,
       delegatePda: delegatePDA,
@@ -135,7 +129,7 @@ export const executePayment = async (params: {
 
 const fetchConfirmedTransaction = async (
   connection: Connection,
-  signature: string
+  signature: string,
 ): Promise<ParsedTransactionWithMeta | null> => {
   const tx = await connection.getParsedTransaction(signature, {
     maxSupportedTransactionVersion: 0,
@@ -178,18 +172,21 @@ export const verifyOneTimePayment = async (params: {
   }
 
   const tokenMintPubkey = new PublicKey(params.expectedTokenMint);
-  const tokenProgramId = await getTokenProgramForMint(connection, tokenMintPubkey);
+  const tokenProgramId = await getTokenProgramForMint(
+    connection,
+    tokenMintPubkey,
+  );
 
   const receiverPubkey = new PublicKey(params.expectedReceiverWallet);
   const expectedReceiverATA = await getAssociatedTokenAddress(
     tokenMintPubkey,
     receiverPubkey,
     false,
-    tokenProgramId
+    tokenProgramId,
   );
 
   const expectedAmountRaw = BigInt(
-    Math.floor(params.expectedAmount * Math.pow(10, params.tokenDecimals))
+    Math.floor(params.expectedAmount * Math.pow(10, params.tokenDecimals)),
   );
 
   for (const ix of allParsedInstructions) {
@@ -228,14 +225,17 @@ export const verifyDelegationTransaction = async (params: {
 
   const tx = await fetchConfirmedTransaction(connection, params.txSignature);
   if (!tx) {
-    return { valid: false, reason: "Delegation transaction not found or failed on-chain" };
+    return {
+      valid: false,
+      reason: "Delegation transaction not found or failed on-chain",
+    };
   }
 
   const programIdStr = PROGRAM_ID.toBase58();
   const instructions = tx.transaction.message.instructions;
 
   const programInvoked = instructions.some(
-    (ix) => ix.programId.toBase58() === programIdStr
+    (ix) => ix.programId.toBase58() === programIdStr,
   );
 
   if (!programInvoked) {
@@ -262,19 +262,23 @@ export const verifyDelegationTransaction = async (params: {
 export const verifyRevokeTransaction = async (params: {
   txSignature: string;
   expectedPayerWallet: string;
+  subscriptionId: string;
 }): Promise<{ valid: boolean; reason?: string }> => {
   const { connection } = initializeSolana();
 
   const tx = await fetchConfirmedTransaction(connection, params.txSignature);
   if (!tx) {
-    return { valid: false, reason: "Revoke transaction not found or failed on-chain" };
+    return {
+      valid: false,
+      reason: "Revoke transaction not found or failed on-chain",
+    };
   }
 
   const programIdStr = PROGRAM_ID.toBase58();
   const instructions = tx.transaction.message.instructions;
 
   const programInvoked = instructions.some(
-    (ix) => ix.programId.toBase58() === programIdStr
+    (ix) => ix.programId.toBase58() === programIdStr,
   );
 
   if (!programInvoked) {
@@ -292,6 +296,21 @@ export const verifyRevokeTransaction = async (params: {
     return {
       valid: false,
       reason: "Expected payer wallet did not sign the revoke transaction",
+    };
+  }
+
+  const payerPubkey = new PublicKey(params.expectedPayerWallet);
+  const { delegateApprovalPDA } = derivePDAs(
+    params.subscriptionId,
+    payerPubkey,
+  );
+  const accountInfo = await connection.getAccountInfo(delegateApprovalPDA);
+
+  if (accountInfo !== null) {
+    return {
+      valid: false,
+      reason:
+        "Delegate authority PDA still exists on-chain, revocation not confirmed",
     };
   }
 

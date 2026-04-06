@@ -329,6 +329,7 @@ export const cancelSubscription = async (
     const verification = await verifyRevokeTransaction({
       txSignature: validatedBody.revokeTxSignature,
       expectedPayerWallet: subscription.payer.walletAddress,
+      subscriptionId: subscription.id,
     });
 
     if (!verification.valid) {
