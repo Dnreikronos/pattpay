@@ -19,16 +19,24 @@ const BACKEND_KEYPAIR = Keypair.fromSecretKey(
   Uint8Array.from(JSON.parse(process.env.BACKEND_PRIVATE_KEY!)),
 );
 
+let solanaInstance: {
+  connection: Connection;
+  program: anchor.Program;
+  provider: anchor.AnchorProvider;
+} | null = null;
+
 export const initializeSolana = () => {
+  if (solanaInstance) return solanaInstance;
+
   const connection = new Connection(RPC_URL, "confirmed");
   const wallet = new anchor.Wallet(BACKEND_KEYPAIR);
   const provider = new anchor.AnchorProvider(connection, wallet, {
     commitment: "confirmed",
   });
-  // Cast to any to bypass type checking for methods
-  const program = new anchor.Program(idl as any, provider);
+  const program = new anchor.Program(idl as anchor.Idl, provider);
 
-  return { connection, program, provider };
+  solanaInstance = { connection, program, provider };
+  return solanaInstance;
 };
 
 export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
