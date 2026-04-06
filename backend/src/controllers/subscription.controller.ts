@@ -37,6 +37,14 @@ export const createSubscription = async (
       });
     }
 
+    if (plan.expiresAt && plan.expiresAt < new Date()) {
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: "Plan has expired",
+      });
+    }
+
     const payer = await prisma.payer.findUnique({
       where: { id: validatedData.payerId },
     });
