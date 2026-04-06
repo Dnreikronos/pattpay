@@ -8,6 +8,9 @@ const scheduleJobs = async () => {
       where: {
         nextDueAt: { lte: new Date() },
         status: "ACTIVE",
+        relayerJobs: {
+          none: { status: "PENDING" },
+        },
       },
       include: {
         plan: {
