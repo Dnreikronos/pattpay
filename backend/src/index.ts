@@ -113,11 +113,21 @@ const buildServer = async () => {
       });
     }
 
-    reply.code(error.statusCode || 500).send({
-      statusCode: error.statusCode || 500,
-      error: error.name || "Internal Server Error",
-      message: error.message || "An unexpected error occurred",
-    });
+    const statusCode = error.statusCode || 500;
+
+    if (statusCode >= 500) {
+      reply.code(statusCode).send({
+        statusCode,
+        error: "Internal Server Error",
+        message: "An unexpected error occurred",
+      });
+    } else {
+      reply.code(statusCode).send({
+        statusCode,
+        error: error.name || "Error",
+        message: error.message,
+      });
+    }
   });
 
   fastify.setNotFoundHandler((request, reply) => {
