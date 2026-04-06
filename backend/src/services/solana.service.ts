@@ -122,7 +122,7 @@ export const executePayment = async (params: {
     })
     .rpc();
 
-  await connection.confirmTransaction(tx, "confirmed");
+  await connection.confirmTransaction(tx, "finalized");
 
   return tx;
 };
@@ -133,7 +133,7 @@ const fetchConfirmedTransaction = async (
 ): Promise<ParsedTransactionWithMeta | null> => {
   const tx = await connection.getParsedTransaction(signature, {
     maxSupportedTransactionVersion: 0,
-    commitment: "confirmed",
+    commitment: "finalized",
   });
 
   if (!tx || tx.meta?.err) return null;
