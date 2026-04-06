@@ -134,7 +134,7 @@ export const subscribe = async (
       data: {
         planId: validatedData.planId,
         payerId: payer.id,
-        token_mint: validatedData.tokenMint,
+        tokenMint: validatedData.tokenMint,
         status: "ACTIVE",
         nextDueAt,
         lastPaidAt: now, // First payment is considered paid via delegation approval

@@ -57,12 +57,12 @@ const processWorker = async () => {
         const plan = subscription.plan;
 
         const planToken = plan.planTokens.find(
-          (t) => t.tokenMint === subscription.token_mint,
+          (t) => t.tokenMint === subscription.tokenMint,
         );
 
         if (!planToken) {
           throw new Error(
-            `Token ${subscription.token_mint} not found in plan ${plan.id}`,
+            `Token ${subscription.tokenMint} not found in plan ${plan.id}`,
           );
         }
 
@@ -141,7 +141,7 @@ const processWorker = async () => {
           amount: planToken.price.toNumber(),
           payerWallet: subscription.payer.walletAddress,
           receiverWallet: plan.receiver.walletAddress,
-          tokenMint: subscription.token_mint,
+          tokenMint: subscription.tokenMint,
           tokenDecimals: subscription.tokenDecimals,
         });
 
@@ -162,7 +162,7 @@ const processWorker = async () => {
               executedBy: "relayer",
               status: "SUCCESS",
               executedAt: new Date(),
-              tokenMint: subscription.token_mint,
+              tokenMint: subscription.tokenMint,
               amount: planToken.price,
             },
           }),
@@ -198,9 +198,9 @@ const processWorker = async () => {
             status: "FAILED",
             executedAt: new Date(),
             errorMessage,
-            tokenMint: job.subscription.token_mint,
+            tokenMint: job.subscription.tokenMint,
             amount: job.subscription.plan.planTokens.find(
-              (t) => t.tokenMint === job.subscription.token_mint,
+              (t) => t.tokenMint === job.subscription.tokenMint,
             )!.price,
           },
         });
