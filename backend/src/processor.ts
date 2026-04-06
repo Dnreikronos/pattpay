@@ -49,7 +49,7 @@ const processWorker = async () => {
       console.log(
         `📦 Processing job ${job.id} for subscription ${
           job.subscription.id
-        } (attempt ${job.retryCount + 1}/${MAX_RETRY_ATTEMPTS})`
+        } (attempt ${job.retryCount + 1}/${MAX_RETRY_ATTEMPTS})`,
       );
 
       try {
@@ -57,12 +57,12 @@ const processWorker = async () => {
         const plan = subscription.plan;
 
         const planToken = plan.planTokens.find(
-          (t) => t.tokenMint === subscription.token_mint
+          (t) => t.tokenMint === subscription.token_mint,
         );
 
         if (!planToken) {
           throw new Error(
-            `Token ${subscription.token_mint} not found in plan ${plan.id}`
+            `Token ${subscription.token_mint} not found in plan ${plan.id}`,
           );
         }
 
@@ -78,7 +78,7 @@ const processWorker = async () => {
 
         if (existingPayment) {
           console.log(
-            `⏭️ Job ${job.id} already has a successful payment (TX: ${existingPayment.txSignature}), skipping`
+            `⏭️ Job ${job.id} already has a successful payment (TX: ${existingPayment.txSignature}), skipping`,
           );
           await prisma.relayerJob.update({
             where: { id: job.id },
@@ -95,12 +95,45 @@ const processWorker = async () => {
         });
 
         if (claimed.count === 0) {
-          console.log(`⏭️ Job ${job.id} already claimed by another worker, skipping`);
+          console.log(
+            `⏭️ Job ${job.id} already claimed by another worker, skipping`,
+          );
+          continue;
+        }
+
+        const { _sum } = await prisma.paymentExecution.aggregate({
+          where: {
+            subscriptionId: subscription.id,
+            status: "SUCCESS",
+          },
+          _sum: { amount: true },
+        });
+
+        const alreadyCharged = _sum.amount?.toNumber() ?? 0;
+        const newChargeAmount = planToken.price.toNumber();
+
+        if (
+          alreadyCharged + newChargeAmount >
+          subscription.totalApprovedAmount.toNumber()
+        ) {
+          console.log(
+            `🚫 Job ${job.id} would exceed approved amount (charged: ${alreadyCharged}, pending: ${newChargeAmount}, approved: ${subscription.totalApprovedAmount}). Skipping.`,
+          );
+          await prisma.relayerJob.update({
+            where: { id: job.id },
+            data: {
+              status: "FAILED",
+              executedAt: new Date(),
+              errorMessage: `Cumulative charge (${alreadyCharged} + ${newChargeAmount}) would exceed totalApprovedAmount (${subscription.totalApprovedAmount})`,
+            },
+          });
+          failedCount++;
+          processedCount++;
           continue;
         }
 
         console.log(
-          `💳 Charging ${planToken.price} ${planToken.symbol} for subscription ${subscription.id}`
+          `💳 Charging ${planToken.price} ${planToken.symbol} for subscription ${subscription.id}`,
         );
 
         const txSignature = await executePayment({
@@ -167,7 +200,7 @@ const processWorker = async () => {
             errorMessage,
             tokenMint: job.subscription.token_mint,
             amount: job.subscription.plan.planTokens.find(
-              (t) => t.tokenMint === job.subscription.token_mint
+              (t) => t.tokenMint === job.subscription.token_mint,
             )!.price,
           },
         });
@@ -190,7 +223,7 @@ const processWorker = async () => {
           console.log(
             `🔄 Job ${
               job.id
-            } scheduled for retry ${currentRetryCount}/${MAX_RETRY_ATTEMPTS} at ${nextRetry.toISOString()}`
+            } scheduled for retry ${currentRetryCount}/${MAX_RETRY_ATTEMPTS} at ${nextRetry.toISOString()}`,
           );
         } else {
           await prisma.subscription.update({
@@ -209,7 +242,7 @@ const processWorker = async () => {
 
           failedCount++;
           console.log(
-            `💀 Job ${job.id} permanently failed after ${MAX_RETRY_ATTEMPTS} attempts. Subscription marked as EXPIRED.`
+            `💀 Job ${job.id} permanently failed after ${MAX_RETRY_ATTEMPTS} attempts. Subscription marked as EXPIRED.`,
           );
         }
       }
@@ -218,7 +251,7 @@ const processWorker = async () => {
     }
 
     console.log(
-      `📊 Processor completed - Processed: ${processedCount} | Success: ${successCount} | Retry: ${retryCount} | Failed: ${failedCount}`
+      `📊 Processor completed - Processed: ${processedCount} | Success: ${successCount} | Retry: ${retryCount} | Failed: ${failedCount}`,
     );
   } catch (error) {
     console.error("💥 Fatal error in processor:", error);
