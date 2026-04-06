@@ -212,7 +212,7 @@ export const getAllPlansController = async (
 
     const revenueAggregate = await prisma.paymentExecution.aggregate({
       where: {
-        planId: { in: plans.map((p) => p.id) },
+        plan: { receiverId: userId },
         status: "SUCCESS",
       },
       _sum: {
