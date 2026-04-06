@@ -9,7 +9,7 @@ const scheduleJobs = async () => {
         nextDueAt: { lte: new Date() },
         status: "ACTIVE",
         relayerJobs: {
-          none: { status: "PENDING" },
+          none: { status: { in: ["PENDING", "PROCESSING"] } },
         },
       },
       include: {
@@ -31,6 +31,7 @@ const scheduleJobs = async () => {
 
     const jobsToCreate = dueSubscriptions.map((subscription) => ({
       subscriptionId: subscription.id,
+      idempotencyKey: `sub:${subscription.id}:due:${subscription.nextDueAt.getTime()}`,
       nextRetryAt: new Date(),
       status: "PENDING" as const,
     }));
