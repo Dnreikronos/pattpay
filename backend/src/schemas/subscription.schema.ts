@@ -27,7 +27,12 @@ import z from "zod";
 export const createSubscriptionSchema = z.object({
   planId: z.string().uuid("Invalid plan ID"),
   payerId: z.string().uuid("Invalid payer ID"),
-  tokenMint: z.string().min(1, "Token mint required"),
+  tokenMint: z
+    .string()
+    .regex(
+      /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+      "Token mint must be a valid base58 Solana public key"
+    ),
   delegateTxSignature: z.string().min(1, "Transaction signature required"),
   delegateAuthority: z.string().min(1, "Delegate authority required"),
   delegateApprovedAt: z.string().datetime("Invalid datetime"),
