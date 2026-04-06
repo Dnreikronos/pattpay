@@ -55,8 +55,8 @@ model Subscription {
 
   // receiverTokenAccount String? @map("receiver_token_account")
 
-  payer Payer @relation(fields: [payerId], references: [id], onDelete: Cascade)
-  plan  Plan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  payer Payer @relation(fields: [payerId], references: [id], onDelete: Restrict)
+  plan  Plan  @relation(fields: [planId], references: [id], onDelete: Restrict)
 
   relayerJobs       RelayerJob[]
   paymentExecutions PaymentExecution[]
