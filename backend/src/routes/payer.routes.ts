@@ -14,7 +14,6 @@ import type {
 } from "../schemas/payer.schema.js";
 
 export async function payerRoutes(fastify: FastifyInstance) {
-  // POST /api/payers - Create a new payer
   fastify.post<{ Body: CreatePayerBody }>("/", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -81,7 +80,6 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: createPayer,
   });
 
-  // GET /api/payers - List all payers with pagination and search
   fastify.get<{ Querystring: GetPayersQuery }>("/", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -167,7 +165,6 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: getPayers,
   });
 
-  // GET /api/payers/:id - Get payer by ID
   fastify.get<{ Params: PayerIdParam }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -219,7 +216,6 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: getPayer,
   });
 
-  // PUT /api/payers/:id - Update payer
   fastify.put<{ Params: PayerIdParam; Body: UpdatePayerBody }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -301,7 +297,6 @@ export async function payerRoutes(fastify: FastifyInstance) {
     handler: updatePayer,
   });
 
-  // DELETE /api/payers/:id - Delete payer
   fastify.delete<{ Params: PayerIdParam }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {

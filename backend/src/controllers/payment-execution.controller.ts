@@ -10,13 +10,8 @@ import {
   type PaymentExecutionIdParam,
   paymentExecutionIdParamSchema,
 } from "../schemas/payment-execution.schema.js";
+import { verifyOneTimePayment } from "../services/solana.service.js";
 
-/**
- * Create a payment execution record for a one-time payment
- *
- * This endpoint is called by the frontend AFTER the user has successfully
- * made a payment via their wallet. It records the transaction in the database.
- */
 export const createPaymentExecution = async (
   request: FastifyRequest<{ Body: CreatePaymentExecutionBody }>,
   reply: FastifyReply
@@ -24,7 +19,6 @@ export const createPaymentExecution = async (
   try {
     const validatedData = createPaymentExecutionSchema.parse(request.body);
 
-    // Verify the plan exists (no authentication needed - public endpoint)
     const plan = await prisma.plan.findUnique({
       where: { id: validatedData.planId },
       include: { planTokens: true, receiver: true },
@@ -38,7 +32,6 @@ export const createPaymentExecution = async (
       });
     }
 
-    // Verify this is NOT a recurring plan
     if (plan.isRecurring) {
       return reply.code(400).send({
         statusCode: 400,
@@ -48,7 +41,6 @@ export const createPaymentExecution = async (
       });
     }
 
-    // Verify the token is supported by the plan
     const planToken = plan.planTokens.find(
       (t) => t.tokenMint === validatedData.tokenMint
     );
@@ -61,7 +53,6 @@ export const createPaymentExecution = async (
       });
     }
 
-    // Check if this transaction signature already exists (prevent duplicates)
     const existingPayment = await prisma.paymentExecution.findFirst({
       where: { txSignature: validatedData.txSignature },
     });
@@ -76,26 +67,27 @@ export const createPaymentExecution = async (
       });
     }
 
-    // TODO: Verify the transaction on-chain
-    // 1. Fetch transaction from Solana using txSignature
-    // 2. Verify transaction is confirmed
-    // 3. Verify amount matches
-    // 4. Verify recipient is the plan's receiver
-    // 5. Verify token mint matches
-    // For now, we'll trust the frontend and mark as SUCCESS
+    const verification = await verifyOneTimePayment({
+      txSignature: validatedData.txSignature,
+      expectedTokenMint: validatedData.tokenMint,
+      expectedAmount: validatedData.amount,
+      expectedReceiverWallet: plan.receiver.walletAddress,
+      tokenDecimals: planToken.tokenDecimals,
+    });
 
-    // Create the payment execution record
+    const status = verification.valid ? "SUCCESS" : "FAILED";
+
     const paymentExecution = await prisma.paymentExecution.create({
       data: {
         planId: validatedData.planId,
-        subscriptionId: null, // One-time payment, no subscription
+        subscriptionId: null,
         txSignature: validatedData.txSignature,
         executedBy: validatedData.executedBy ?? null,
-        status: "SUCCESS", // TODO: Verify on-chain before marking as SUCCESS
+        status,
         executedAt: new Date(),
         tokenMint: validatedData.tokenMint,
         amount: validatedData.amount,
-        errorMessage: null,
+        errorMessage: verification.valid ? null : verification.reason ?? null,
       },
       include: {
         plan: {
@@ -107,12 +99,25 @@ export const createPaymentExecution = async (
       },
     });
 
+    if (!verification.valid) {
+      request.log.warn(
+        `Payment verification failed for plan ${plan.id} (tx: ${validatedData.txSignature}): ${verification.reason}`
+      );
+
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: `Transaction verification failed: ${verification.reason}`,
+        paymentExecutionId: paymentExecution.id,
+      });
+    }
+
     request.log.info(
-      `Payment execution created: ${paymentExecution.id} for plan ${plan.id} (tx: ${validatedData.txSignature})`
+      `Payment verified and recorded: ${paymentExecution.id} for plan ${plan.id} (tx: ${validatedData.txSignature})`
     );
 
     return reply.code(201).send({
-      message: "Payment execution recorded successfully",
+      message: "Payment verified and recorded successfully",
       paymentExecution,
     });
   } catch (error) {
@@ -134,9 +139,6 @@ export const createPaymentExecution = async (
   }
 };
 
-/**
- * Get all payment executions for the authenticated receiver
- */
 export const getPaymentExecutions = async (
   request: FastifyRequest<{ Querystring: GetPaymentExecutionsQuery }>,
   reply: FastifyReply
@@ -145,29 +147,24 @@ export const getPaymentExecutions = async (
     const validatedQuery = getPaymentExecutionsQuerySchema.parse(request.query);
     const userId = request.user.userId;
 
-    // Build query filters
     const where: Prisma.PaymentExecutionWhereInput = {
       plan: {
-        receiverId: userId, // Only show payments for this receiver's plans
+        receiverId: userId,
       },
     };
 
-    // Status filter
     if (validatedQuery.status !== "all") {
       where.status = validatedQuery.status;
     }
 
-    // Plan filter
     if (validatedQuery.planId) {
       where.planId = validatedQuery.planId;
     }
 
-    // Token filter
     if (validatedQuery.tokenMint) {
       where.tokenMint = validatedQuery.tokenMint;
     }
 
-    // Date range filter
     if (validatedQuery.dateFrom || validatedQuery.dateTo) {
       where.executedAt = {};
       if (validatedQuery.dateFrom) {
@@ -178,7 +175,6 @@ export const getPaymentExecutions = async (
       }
     }
 
-    // Search by transaction signature
     if (validatedQuery.search) {
       where.txSignature = {
         contains: validatedQuery.search,
@@ -235,9 +231,6 @@ export const getPaymentExecutions = async (
   }
 };
 
-/**
- * Get a specific payment execution by ID
- */
 export const getPaymentExecution = async (
   request: FastifyRequest<{ Params: PaymentExecutionIdParam }>,
   reply: FastifyReply
@@ -271,7 +264,6 @@ export const getPaymentExecution = async (
       });
     }
 
-    // Verify the payment belongs to this receiver
     if (paymentExecution.plan?.receiverId !== userId) {
       return reply.code(403).send({
         statusCode: 403,

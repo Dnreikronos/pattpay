@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { getSupportedTokenSymbols } from "../constants/tokens.js";
 
-// Token pricing schema - frontend only sends symbol and price
 const tokenPriceSchema = z.object({
   token: z.enum(getSupportedTokenSymbols() as [string, ...string[]], {
     message: `Token must be one of: ${getSupportedTokenSymbols().join(", ")}`,

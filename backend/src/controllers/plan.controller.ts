@@ -26,7 +26,6 @@ export const createPlanController = async (
     const validatedData = createPlanSchema.parse(request.body);
     const userId = request.user.userId;
 
-    // Verify receiver exists
     const receiver = await prisma.receiver.findUnique({
       where: { id: userId },
     });
@@ -39,7 +38,6 @@ export const createPlanController = async (
       });
     }
 
-    // Validate and enrich token prices with mint addresses and decimals
     const enrichedTokenPrices = validatedData.tokenPrices.map((tokenPrice) => {
       const tokenConfig = getTokenConfig(tokenPrice.token);
       if (!tokenConfig) {
@@ -53,7 +51,6 @@ export const createPlanController = async (
       };
     });
 
-    // Create plan with token prices in transaction
     const result = await prisma.$transaction(async (tx) => {
       const plan = await tx.plan.create({
         data: {
@@ -79,7 +76,6 @@ export const createPlanController = async (
         },
       });
 
-      // Create plan tokens with symbol stored in DB
       await tx.planToken.createMany({
         data: enrichedTokenPrices.map((token) => ({
           planId: plan.id,
@@ -90,7 +86,6 @@ export const createPlanController = async (
         })),
       });
 
-      // Fetch created tokens for response
       const createdTokens = await tx.planToken.findMany({
         where: { planId: plan.id },
       });
@@ -98,7 +93,6 @@ export const createPlanController = async (
       return { plan, tokens: createdTokens };
     });
 
-    // Generate checkout link URL
     const paymentUrl = `${frontendUrl}/payment/${result.plan.id}`;
 
     return reply.code(201).send({
@@ -156,22 +150,18 @@ export const getAllPlansController = async (
     const validatedQuery = getLinksQuerySchema.parse(request.query);
     const userId = request.user.userId;
 
-    // Build where clause for filters
     const where: Prisma.PlanWhereInput = {
       receiverId: userId,
     };
 
-    // Status filter
     if (validatedQuery.status !== "all") {
       where.status = validatedQuery.status;
     }
 
-    // Recurring filter
     if (validatedQuery.isRecurring !== "all") {
       where.isRecurring = validatedQuery.isRecurring === "true" ? true : false;
     }
 
-    // Search filter (name contains, case-insensitive)
     if (validatedQuery.search) {
       where.name = {
         contains: validatedQuery.search,
@@ -179,11 +169,9 @@ export const getAllPlansController = async (
       };
     }
 
-    // Calculate pagination
     const skip = (validatedQuery.page - 1) * validatedQuery.limit;
     const take = validatedQuery.limit;
 
-    // Query plans with relations and count
     const [plans, total] = await Promise.all([
       prisma.plan.findMany({
         where,
@@ -205,7 +193,7 @@ export const getAllPlansController = async (
       prisma.plan.count({ where }),
     ]);
 
-    // Calculate stats from all user's plans (not just filtered)
+    // Stats across all user's plans, not just the filtered page
     const [totalActive, totalCreated] = await Promise.all([
       prisma.plan.count({
         where: {
@@ -220,10 +208,8 @@ export const getAllPlansController = async (
       }),
     ]);
 
-    // Transform plans to frontend format
     const links = plans.map(transformPlanToCheckoutLink);
 
-    // Calculate total revenue from actual payment executions
     const revenueAggregate = await prisma.paymentExecution.aggregate({
       where: {
         planId: { in: plans.map((p) => p.id) },
@@ -281,7 +267,6 @@ export const getPlanByIdController = async (
     const validatedParams = planIdParamSchema.parse(request.params);
     const userId = request.user.userId;
 
-    // Query plan with relations
     const plan = await prisma.plan.findUnique({
       where: {
         id: validatedParams.id,
@@ -297,7 +282,6 @@ export const getPlanByIdController = async (
       },
     });
 
-    // Check if plan exists and belongs to user
     if (!plan || plan.receiverId !== userId) {
       return reply.code(404).send({
         statusCode: 404,
@@ -306,7 +290,6 @@ export const getPlanByIdController = async (
       });
     }
 
-    // Transform to frontend format
     const link = transformPlanToCheckoutLink(plan);
 
     return reply.code(200).send({ link });
@@ -336,7 +319,6 @@ export const getPublicPlanByIdController = async (
   try {
     const validatedParams = planIdParamSchema.parse(request.params);
 
-    // Query plan with relations (no user check, but include full receiver for type safety)
     const plan = await prisma.plan.findUnique({
       where: {
         id: validatedParams.id,
@@ -352,7 +334,6 @@ export const getPublicPlanByIdController = async (
       },
     });
 
-    // Check if plan exists
     if (!plan) {
       return reply.code(404).send({
         statusCode: 404,
@@ -361,7 +342,6 @@ export const getPublicPlanByIdController = async (
       });
     }
 
-    // Check if plan is active
     if (plan.status !== "ACTIVE") {
       return reply.code(404).send({
         statusCode: 404,
@@ -370,7 +350,6 @@ export const getPublicPlanByIdController = async (
       });
     }
 
-    // Check if plan is expired
     if (plan.expiresAt && plan.expiresAt < new Date()) {
       return reply.code(404).send({
         statusCode: 404,
@@ -379,7 +358,6 @@ export const getPublicPlanByIdController = async (
       });
     }
 
-    // Transform to frontend format
     const link = transformPlanToCheckoutLink(plan);
 
     return reply.code(200).send({ link });
@@ -411,7 +389,6 @@ export const updatePlanController = async (
     const validatedData = updatePlanSchema.parse(request.body);
     const userId = request.user.userId;
 
-    // Check if plan exists and belongs to user
     const existingPlan = await prisma.plan.findUnique({
       where: { id: validatedParams.id },
     });
@@ -424,9 +401,7 @@ export const updatePlanController = async (
       });
     }
 
-    // Update plan and token prices in transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Update plan
       const updatedPlan = await tx.plan.update({
         where: { id: validatedParams.id },
         data: {
@@ -446,14 +421,11 @@ export const updatePlanController = async (
         },
       });
 
-      // If token prices provided, replace them
       if (validatedData.tokenPrices) {
-        // Delete existing tokens
         await tx.planToken.deleteMany({
           where: { planId: validatedParams.id },
         });
 
-        // Enrich and create new tokens
         const enrichedTokenPrices = validatedData.tokenPrices.map(
           (tokenPrice) => {
             const tokenConfig = getTokenConfig(tokenPrice.token);
@@ -477,7 +449,6 @@ export const updatePlanController = async (
         });
       }
 
-      // Fetch updated plan with relations
       const planWithRelations = await tx.plan.findUnique({
         where: { id: validatedParams.id },
         include: {
@@ -502,7 +473,6 @@ export const updatePlanController = async (
       });
     }
 
-    // Transform to frontend format
     const link = transformPlanToCheckoutLink(result);
 
     return reply.code(200).send({ link });

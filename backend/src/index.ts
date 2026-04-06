@@ -18,7 +18,6 @@ const fastify = Fastify({
 });
 
 const buildServer = async () => {
-  // Swagger Documentation
   await fastify.register(fastifySwagger, {
     openapi: {
       info: {
@@ -94,11 +93,9 @@ const buildServer = async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
   });
 
-  // Global error handler
   fastify.setErrorHandler((error, request, reply) => {
     request.log.error(error);
 
-    // Handle validation errors
     if (error.validation) {
       return reply.code(400).send({
         statusCode: 400,
@@ -108,7 +105,6 @@ const buildServer = async () => {
       });
     }
 
-    // Handle JWT errors
     if (error.message.includes("jwt")) {
       return reply.code(401).send({
         statusCode: 401,
@@ -117,7 +113,6 @@ const buildServer = async () => {
       });
     }
 
-    // Generic error response
     reply.code(error.statusCode || 500).send({
       statusCode: error.statusCode || 500,
       error: error.name || "Internal Server Error",
@@ -125,7 +120,6 @@ const buildServer = async () => {
     });
   });
 
-  // 404 handler
   fastify.setNotFoundHandler((request, reply) => {
     reply.code(404).send({
       statusCode: 404,
@@ -135,7 +129,6 @@ const buildServer = async () => {
   });
 };
 
-// Start server with graceful shutdown
 const start = async () => {
   try {
     await buildServer();
@@ -154,7 +147,6 @@ const start = async () => {
   }
 };
 
-// Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   console.log(`\n${signal} received, closing server gracefully...`);
   await fastify.close();

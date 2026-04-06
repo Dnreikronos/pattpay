@@ -5,6 +5,7 @@ import {
   getSubscriptions,
 } from "../controllers/subscription.controller.js";
 import type {
+  CancelSubscriptionBody,
   GetSubscriptionQuery,
   subscriptionIdParam,
 } from "../schemas/subscription.schema.js";
@@ -13,7 +14,6 @@ export async function subscriptionRoutes(fastify: FastifyInstance) {
   // NOTE: POST /api/subscriptions has been DEPRECATED and removed.
   // Use POST /api/subscribe instead - it handles both payer creation and subscription in one call.
 
-  // GET /api/subscriptions - List subscriptions for receiver
   fastify.get<{ Querystring: GetSubscriptionQuery }>("/", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -113,7 +113,6 @@ export async function subscriptionRoutes(fastify: FastifyInstance) {
     handler: getSubscriptions,
   });
 
-  // GET /api/subscriptions/:id - Get subscription details
   fastify.get<{ Params: subscriptionIdParam }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -186,8 +185,7 @@ export async function subscriptionRoutes(fastify: FastifyInstance) {
     handler: getSubscription,
   });
 
-  // DELETE /api/subscriptions/:id - Cancel subscription after on-chain revoke
-  fastify.delete<{ Params: subscriptionIdParam }>("/:id", {
+  fastify.delete<{ Params: subscriptionIdParam; Body: CancelSubscriptionBody }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {
       tags: ["Subscriptions"],

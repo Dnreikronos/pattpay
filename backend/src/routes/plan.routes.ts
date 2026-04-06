@@ -141,7 +141,6 @@ export async function planRoutes(fastify: FastifyInstance) {
     handler: createPlanController,
   });
 
-  // GET /api/links - List all payment links with pagination and filters
   fastify.get<{ Querystring: GetLinksQuery }>("/", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -252,7 +251,6 @@ export async function planRoutes(fastify: FastifyInstance) {
     handler: getAllPlansController,
   });
 
-  // GET /api/links/public/:id - Get payment link by ID (PUBLIC - No authentication)
   fastify.get<{ Params: PlanIdParam }>("/public/:id", {
     schema: {
       tags: ["Payment Links"],
@@ -332,7 +330,6 @@ export async function planRoutes(fastify: FastifyInstance) {
     handler: getPublicPlanByIdController,
   });
 
-  // GET /api/links/:id - Get payment link by ID
   fastify.get<{ Params: PlanIdParam }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -414,7 +411,6 @@ export async function planRoutes(fastify: FastifyInstance) {
     handler: getPlanByIdController,
   });
 
-  // PUT /api/links/:id - Update payment link
   fastify.put<{ Params: PlanIdParam; Body: UpdatePlanBody }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {

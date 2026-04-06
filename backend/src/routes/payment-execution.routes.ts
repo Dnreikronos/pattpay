@@ -11,7 +11,6 @@ import type {
 } from "../schemas/payment-execution.schema.js";
 
 export async function paymentExecutionRoutes(fastify: FastifyInstance) {
-  // POST /api/payment-executions - Record a one-time payment (PUBLIC - no auth)
   fastify.post<{ Body: CreatePaymentExecutionBody }>("/", {
     schema: {
       tags: ["Payment Executions"],
@@ -135,7 +134,6 @@ export async function paymentExecutionRoutes(fastify: FastifyInstance) {
     handler: createPaymentExecution,
   });
 
-  // GET /api/payment-executions - List all payment executions
   fastify.get<{ Querystring: GetPaymentExecutionsQuery }>("/", {
     onRequest: [fastify.authenticate],
     schema: {
@@ -220,7 +218,6 @@ export async function paymentExecutionRoutes(fastify: FastifyInstance) {
     handler: getPaymentExecutions,
   });
 
-  // GET /api/payment-executions/:id - Get payment execution details
   fastify.get<{ Params: PaymentExecutionIdParam }>("/:id", {
     onRequest: [fastify.authenticate],
     schema: {

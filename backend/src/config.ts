@@ -1,10 +1,8 @@
 import dotenv from "dotenv";
 import { z } from "zod";
 
-// Load environment variables
 dotenv.config();
 
-// Define the schema for environment variables
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   JWT_SECRET: z
@@ -18,7 +16,6 @@ const envSchema = z.object({
   SOLANA_NETWORK: z.enum(["mainnet", "devnet"]).default("mainnet"),
 });
 
-// Validate and parse environment variables
 const parseEnv = () => {
   try {
     return envSchema.parse(process.env);
@@ -36,7 +33,6 @@ const parseEnv = () => {
 
 const rawConfig = parseEnv();
 
-// Parse CORS origins from comma-separated FRONTEND_URL
 const corsOrigins = rawConfig.FRONTEND_URL.split(",")
   .map((url) => url.trim())
   .filter(Boolean);

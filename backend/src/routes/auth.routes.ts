@@ -6,7 +6,6 @@ import {
 } from "../controllers/auth.controller.js";
 
 export async function authRoutes(fastify: FastifyInstance) {
-  // Signup
   fastify.post("/signup", {
     schema: {
       tags: ["Authentication"],
@@ -85,7 +84,6 @@ export async function authRoutes(fastify: FastifyInstance) {
     handler: signupController,
   });
 
-  // Signin
   fastify.post("/signin", {
     schema: {
       tags: ["Authentication"],
@@ -150,7 +148,6 @@ export async function authRoutes(fastify: FastifyInstance) {
     handler: signinController,
   });
 
-  // Get current user
   fastify.get("/me", {
     onRequest: [fastify.authenticate],
     schema: {

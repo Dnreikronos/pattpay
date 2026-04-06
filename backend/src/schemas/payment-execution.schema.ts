@@ -35,7 +35,7 @@ export type CreatePaymentExecutionBody = z.infer<
 export const getPaymentExecutionsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1), // Changed from .positive() for better OpenAPI compatibility
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  status: z.enum(["SUCCESS", "FAILED", "all"]).default("all"),
+  status: z.enum(["PENDING", "SUCCESS", "FAILED", "all"]).default("all"),
   planId: z.uuid().optional(),
   tokenMint: z.string().optional(),
   dateFrom: z.coerce.date().optional(),

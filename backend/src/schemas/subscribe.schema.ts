@@ -14,18 +14,15 @@ import { z } from "zod";
  * 5. Backend creates/retrieves payer and creates subscription in one call
  */
 export const subscribeSchema = z.object({
-  // Payer information (will be used to create or find payer)
   payer: z.object({
     walletAddress: z.string().min(1, "Wallet address is required").max(255),
     name: z.string().min(1, "Name is required").max(255),
     email: z.email("Invalid email").optional(),
   }),
 
-  // Subscription details
   planId: z.uuid("Invalid plan ID"),
   tokenMint: z.string().min(1, "Token mint required"),
 
-  // On-chain delegation proof
   delegateTxSignature: z.string().min(1, "Transaction signature required"),
   delegateAuthority: z.string().min(1, "Delegate authority required"),
   delegateApprovedAt: z.iso.datetime("Invalid datetime"),
