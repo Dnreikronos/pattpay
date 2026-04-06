@@ -141,6 +141,7 @@ model RelayerJob {
 }
 
 enum PaymentExecutionStatus {
+  PENDING
   SUCCESS
   FAILED
 }

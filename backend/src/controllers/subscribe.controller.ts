@@ -5,18 +5,8 @@ import {
   type SubscribeBody,
   subscribeSchema,
 } from "../schemas/subscribe.schema.js";
+import { verifyDelegationTransaction } from "../services/solana.service.js";
 
-/**
- * Subscribe endpoint - Simplified workflow for recurring subscriptions
- *
- * This endpoint:
- * 1. Checks if payer exists by wallet address (creates if not)
- * 2. Verifies that the plan is recurring
- * 3. Creates the subscription
- *
- * This should ONLY be used for recurring plans. One-time payments are handled
- * on the frontend with the user's wallet, then stored in payment_executions table.
- */
 export const subscribe = async (
   request: FastifyRequest<{ Body: SubscribeBody }>,
   reply: FastifyReply
@@ -24,7 +14,6 @@ export const subscribe = async (
   try {
     const validatedData = subscribeSchema.parse(request.body);
 
-    // Step 1: Check if the plan exists and is recurring
     const plan = await prisma.plan.findUnique({
       where: { id: validatedData.planId },
       include: { planTokens: true, receiver: true },
@@ -38,7 +27,6 @@ export const subscribe = async (
       });
     }
 
-    // Step 2: Verify this is a recurring plan
     if (!plan.isRecurring) {
       return reply.code(400).send({
         statusCode: 400,
@@ -48,7 +36,6 @@ export const subscribe = async (
       });
     }
 
-    // Verify the plan is active
     if (plan.status !== "ACTIVE") {
       return reply.code(400).send({
         statusCode: 400,
@@ -57,7 +44,6 @@ export const subscribe = async (
       });
     }
 
-    // Step 3: Verify the token is supported by this plan
     const planToken = plan.planTokens.find(
       (t) => t.tokenMint === validatedData.tokenMint
     );
@@ -70,9 +56,7 @@ export const subscribe = async (
       });
     }
 
-    // Step 4: Check if payer exists by wallet address AND name, create if not
-    // This allows the same wallet to subscribe to different plans with different identities
-    // (e.g., personal vs business subscriptions)
+    // Same wallet can subscribe with different identities (personal vs business)
     let payer = await prisma.payer.findUnique({
       where: {
         walletAddress_name: {
@@ -83,7 +67,6 @@ export const subscribe = async (
     });
 
     if (!payer) {
-      // Create new payer with this wallet + name combination
       payer = await prisma.payer.create({
         data: {
           walletAddress: validatedData.payer.walletAddress,
@@ -101,7 +84,6 @@ export const subscribe = async (
       );
     }
 
-    // Step 5: Check if an active subscription already exists for this payer and plan
     const existingSubscription = await prisma.subscription.findFirst({
       where: {
         payerId: payer.id,
@@ -120,7 +102,23 @@ export const subscribe = async (
       });
     }
 
-    // Step 6: Calculate subscription details
+    const verification = await verifyDelegationTransaction({
+      txSignature: validatedData.delegateTxSignature,
+      expectedPayerWallet: validatedData.payer.walletAddress,
+    });
+
+    if (!verification.valid) {
+      request.log.warn(
+        `Delegation verification failed for plan ${plan.id}: ${verification.reason}`
+      );
+
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: `Delegation verification failed: ${verification.reason}`,
+      });
+    }
+
     const now = new Date();
     const nextDueAt = new Date(now);
 
@@ -128,12 +126,10 @@ export const subscribe = async (
       nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
     }
 
-    // Calculate total approved amount (price * durationMonths)
     const totalApprovedAmount = plan.durationMonths
       ? planToken.price.toNumber() * plan.durationMonths
       : planToken.price;
 
-    // Step 7: Create the subscription
     const subscription = await prisma.subscription.create({
       data: {
         planId: validatedData.planId,

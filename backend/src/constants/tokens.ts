@@ -5,7 +5,6 @@ export interface TokenConfig {
   decimals: number;
 }
 
-// Get network from environment (mainnet or devnet)
 const NETWORK = process.env.SOLANA_NETWORK || "mainnet";
 
 const TOKEN_CONFIGS: Record<string, Record<string, TokenConfig>> = {

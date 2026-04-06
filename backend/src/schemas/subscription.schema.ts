@@ -66,9 +66,15 @@ export type subscriptionIdParam = z.infer<typeof subscriptionIdParamSchema>;
  * 4. User signs the transaction
  * 5. Frontend gets the transaction signature
  * 6. Frontend calls DELETE /api/subscriptions/:id with the revoke signature
- * 7. Backend marks subscription as CANCELLED
+ * 7. Backend verifies the revoke transaction on-chain
+ * 8. Backend marks subscription as CANCELLED
  *
  * CONTRACT INTERACTION:
  * The revoke_delegate instruction closes the PDA, preventing any further charges
  * The relayer will no longer be able to call charge_subscription for this subscription
  */
+export const cancelSubscriptionSchema = z.object({
+  revokeTxSignature: z.string().min(1, "Revoke transaction signature required"),
+});
+
+export type CancelSubscriptionBody = z.infer<typeof cancelSubscriptionSchema>;

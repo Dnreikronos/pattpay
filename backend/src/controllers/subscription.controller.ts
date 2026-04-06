@@ -4,12 +4,18 @@ import { z } from "zod";
 import { prisma } from "../db.js";
 import {
   type CreateSubscriptionBody,
+  type CancelSubscriptionBody,
   createSubscriptionSchema,
+  cancelSubscriptionSchema,
   type GetSubscriptionQuery,
   getSubscriptionsQuerySchema,
   type subscriptionIdParam,
   subscriptionIdParamSchema,
 } from "../schemas/subscription.schema.js";
+import {
+  verifyDelegationTransaction,
+  verifyRevokeTransaction,
+} from "../services/solana.service.js";
 
 export const createSubscription = async (
   request: FastifyRequest<{ Body: CreateSubscriptionBody }>,
@@ -43,7 +49,6 @@ export const createSubscription = async (
       });
     }
 
-    // Verify the token is supported by this plan
     const planToken = plan.planTokens.find(
       (t) => t.tokenMint === validatedData.tokenMint
     );
@@ -56,21 +61,33 @@ export const createSubscription = async (
       });
     }
 
-    // Calculate when the next payment is due
+    const verification = await verifyDelegationTransaction({
+      txSignature: validatedData.delegateTxSignature,
+      expectedPayerWallet: payer.walletAddress,
+    });
+
+    if (!verification.valid) {
+      request.log.warn(
+        `Delegation verification failed for plan ${plan.id}: ${verification.reason}`
+      );
+
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: `Delegation verification failed: ${verification.reason}`,
+      });
+    }
+
     const now = new Date();
     const nextDueAt = new Date(now);
     if (plan.periodSeconds) {
       nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
     }
 
-    // Calculate total approved amount
-    // For recurring: price * durationMonths
-    // For one-time: just the price
     const totalApprovedAmount = plan.durationMonths
       ? planToken.price.toNumber() * plan.durationMonths
       : planToken.price;
 
-    // Create the subscription record
     const subscription = await prisma.subscription.create({
       data: {
         planId: validatedData.planId,
@@ -78,9 +95,9 @@ export const createSubscription = async (
         token_mint: validatedData.tokenMint,
         status: "ACTIVE",
         nextDueAt,
-        lastPaidAt: now, // First payment is considered paid via delegation approval
-        delegateAuthority: validatedData.delegateAuthority, // PDA address for relayer to use
-        delegateTxSignature: validatedData.delegateTxSignature, // Proof of on-chain delegation
+        lastPaidAt: now,
+        delegateAuthority: validatedData.delegateAuthority,
+        delegateTxSignature: validatedData.delegateTxSignature,
         delegateApprovedAt: new Date(validatedData.delegateApprovedAt),
         tokenDecimals: planToken.tokenDecimals,
         totalApprovedAmount,
@@ -119,29 +136,24 @@ export const getSubscriptions = async (
     const validatedQuery = getSubscriptionsQuerySchema.parse(request.query);
     const userId = request.user.userId;
 
-    // Build query filters
     const where: Prisma.SubscriptionWhereInput = {
       plan: {
-        receiverId: userId, // Only show subscriptions for this receiver's plans
+        receiverId: userId,
       },
     };
 
-    // Status filter
     if (validatedQuery.status !== "all") {
       where.status = validatedQuery.status;
     }
 
-    // Plan filter
     if (validatedQuery.planId) {
       where.planId = validatedQuery.planId;
     }
 
-    // Token type filter
     if (validatedQuery.tokenMint) {
       where.token_mint = validatedQuery.tokenMint;
     }
 
-    // Date range filter
     if (validatedQuery.dateFrom || validatedQuery.dateTo) {
       where.createdAt = {};
       if (validatedQuery.dateFrom) {
@@ -152,7 +164,6 @@ export const getSubscriptions = async (
       }
     }
 
-    // Search across payer and plan information
     if (validatedQuery.search) {
       where.OR = [
         {
@@ -246,7 +257,6 @@ export const getSubscription = async (
       },
     });
 
-    // Allow access if user is either the plan owner (receiver) or the subscriber (payer)
     if (
       !subscription ||
       (subscription.plan.receiverId !== userId &&
@@ -282,16 +292,18 @@ export const getSubscription = async (
 export const cancelSubscription = async (
   request: FastifyRequest<{
     Params: subscriptionIdParam;
+    Body: CancelSubscriptionBody;
   }>,
   reply: FastifyReply
 ) => {
   try {
     const validatedParams = subscriptionIdParamSchema.parse(request.params);
+    const validatedBody = cancelSubscriptionSchema.parse(request.body);
     const userId = request.user.userId;
 
     const subscription = await prisma.subscription.findUnique({
       where: { id: validatedParams.id },
-      include: { plan: true },
+      include: { plan: true, payer: true },
     });
 
     if (
@@ -314,11 +326,22 @@ export const cancelSubscription = async (
       });
     }
 
-    // TODO: Verify revokeTxSignature on-chain to ensure:
-    // 1. Transaction is valid and confirmed
-    // 2. Transaction called revoke_delegate with correct subscription_id
-    // 3. Transaction was signed by the original payer
-    // This prevents malicious cancellations without actual on-chain revocation
+    const verification = await verifyRevokeTransaction({
+      txSignature: validatedBody.revokeTxSignature,
+      expectedPayerWallet: subscription.payer.walletAddress,
+    });
+
+    if (!verification.valid) {
+      request.log.warn(
+        `Revoke verification failed for subscription ${subscription.id}: ${verification.reason}`
+      );
+
+      return reply.code(400).send({
+        statusCode: 400,
+        error: "Bad Request",
+        message: `Revoke verification failed: ${verification.reason}`,
+      });
+    }
 
     const updated = await prisma.subscription.update({
       where: { id: validatedParams.id },

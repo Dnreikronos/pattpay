@@ -1,5 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  type ParsedTransactionWithMeta,
+} from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID,
@@ -14,9 +19,6 @@ const BACKEND_KEYPAIR = Keypair.fromSecretKey(
   Uint8Array.from(JSON.parse(process.env.BACKEND_PRIVATE_KEY!))
 );
 
-/**
- * Initialize Solana connection and Anchor program
- */
 export const initializeSolana = () => {
   const connection = new Connection(RPC_URL, "confirmed");
   const wallet = new anchor.Wallet(BACKEND_KEYPAIR);
@@ -29,9 +31,6 @@ export const initializeSolana = () => {
   return { connection, program, provider };
 };
 
-/**
- * Derive PDA addresses needed for charge_subscription
- */
 export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
   // Strip hyphens from UUID to fit within Solana's 32-byte seed limit
   const seedId = subscriptionId.replace(/-/g, "");
@@ -53,9 +52,6 @@ export const derivePDAs = (subscriptionId: string, payerPubkey: PublicKey) => {
   return { delegateApprovalPDA, delegatePDA };
 };
 
-/**
- * Detect which token program owns a mint by checking the account's owner
- */
 const getTokenProgramForMint = async (
   connection: Connection,
   mintPubkey: PublicKey
@@ -71,9 +67,6 @@ const getTokenProgramForMint = async (
   return TOKEN_PROGRAM_ID;
 };
 
-/**
- * Execute payment on-chain by calling charge_subscription
- */
 export const executePayment = async (params: {
   subscriptionId: string;
   amount: number;
@@ -138,4 +131,169 @@ export const executePayment = async (params: {
   await connection.confirmTransaction(tx, "confirmed");
 
   return tx;
+};
+
+const fetchConfirmedTransaction = async (
+  connection: Connection,
+  signature: string
+): Promise<ParsedTransactionWithMeta | null> => {
+  const tx = await connection.getParsedTransaction(signature, {
+    maxSupportedTransactionVersion: 0,
+    commitment: "confirmed",
+  });
+
+  if (!tx || tx.meta?.err) return null;
+  return tx;
+};
+
+export const verifyOneTimePayment = async (params: {
+  txSignature: string;
+  expectedTokenMint: string;
+  expectedAmount: number;
+  expectedReceiverWallet: string;
+  tokenDecimals: number;
+}): Promise<{ valid: boolean; reason?: string }> => {
+  const { connection } = initializeSolana();
+
+  const tx = await fetchConfirmedTransaction(connection, params.txSignature);
+  if (!tx) {
+    return { valid: false, reason: "Transaction not found or failed on-chain" };
+  }
+
+  const instructions = tx.transaction.message.instructions;
+  const innerInstructions = tx.meta?.innerInstructions ?? [];
+
+  const allParsedInstructions: Array<{
+    program: string;
+    parsed?: { type: string; info: Record<string, unknown> };
+  }> = [];
+
+  for (const ix of instructions) {
+    if ("parsed" in ix) allParsedInstructions.push(ix as any);
+  }
+  for (const inner of innerInstructions) {
+    for (const ix of inner.instructions) {
+      if ("parsed" in ix) allParsedInstructions.push(ix as any);
+    }
+  }
+
+  const tokenMintPubkey = new PublicKey(params.expectedTokenMint);
+  const tokenProgramId = await getTokenProgramForMint(connection, tokenMintPubkey);
+
+  const receiverPubkey = new PublicKey(params.expectedReceiverWallet);
+  const expectedReceiverATA = await getAssociatedTokenAddress(
+    tokenMintPubkey,
+    receiverPubkey,
+    false,
+    tokenProgramId
+  );
+
+  const expectedAmountRaw = BigInt(
+    Math.floor(params.expectedAmount * Math.pow(10, params.tokenDecimals))
+  );
+
+  for (const ix of allParsedInstructions) {
+    if (ix.parsed?.type !== "transferChecked") continue;
+
+    const info = ix.parsed.info;
+    const mint = info.mint as string;
+    const destination = info.destination as string;
+    const tokenAmount = info.tokenAmount as { amount: string };
+
+    if (mint !== params.expectedTokenMint) continue;
+    if (destination !== expectedReceiverATA.toBase58()) continue;
+
+    const actualAmount = BigInt(tokenAmount.amount);
+    if (actualAmount < expectedAmountRaw) {
+      return {
+        valid: false,
+        reason: `Amount mismatch: expected ${expectedAmountRaw}, got ${actualAmount}`,
+      };
+    }
+
+    return { valid: true };
+  }
+
+  return {
+    valid: false,
+    reason: "No matching transferChecked instruction found in transaction",
+  };
+};
+
+export const verifyDelegationTransaction = async (params: {
+  txSignature: string;
+  expectedPayerWallet: string;
+}): Promise<{ valid: boolean; reason?: string }> => {
+  const { connection } = initializeSolana();
+
+  const tx = await fetchConfirmedTransaction(connection, params.txSignature);
+  if (!tx) {
+    return { valid: false, reason: "Delegation transaction not found or failed on-chain" };
+  }
+
+  const programIdStr = PROGRAM_ID.toBase58();
+  const instructions = tx.transaction.message.instructions;
+
+  const programInvoked = instructions.some(
+    (ix) => ix.programId.toBase58() === programIdStr
+  );
+
+  if (!programInvoked) {
+    return {
+      valid: false,
+      reason: "Transaction did not invoke the PattPay program",
+    };
+  }
+
+  const signers = tx.transaction.message.accountKeys
+    .filter((ak) => ak.signer)
+    .map((ak) => ak.pubkey.toBase58());
+
+  if (!signers.includes(params.expectedPayerWallet)) {
+    return {
+      valid: false,
+      reason: "Expected payer wallet did not sign the transaction",
+    };
+  }
+
+  return { valid: true };
+};
+
+export const verifyRevokeTransaction = async (params: {
+  txSignature: string;
+  expectedPayerWallet: string;
+}): Promise<{ valid: boolean; reason?: string }> => {
+  const { connection } = initializeSolana();
+
+  const tx = await fetchConfirmedTransaction(connection, params.txSignature);
+  if (!tx) {
+    return { valid: false, reason: "Revoke transaction not found or failed on-chain" };
+  }
+
+  const programIdStr = PROGRAM_ID.toBase58();
+  const instructions = tx.transaction.message.instructions;
+
+  const programInvoked = instructions.some(
+    (ix) => ix.programId.toBase58() === programIdStr
+  );
+
+  if (!programInvoked) {
+    return {
+      valid: false,
+      reason: "Transaction did not invoke the PattPay program",
+    };
+  }
+
+  const signers = tx.transaction.message.accountKeys
+    .filter((ak) => ak.signer)
+    .map((ak) => ak.pubkey.toBase58());
+
+  if (!signers.includes(params.expectedPayerWallet)) {
+    return {
+      valid: false,
+      reason: "Expected payer wallet did not sign the revoke transaction",
+    };
+  }
+
+  return { valid: true };
 };

@@ -3,7 +3,6 @@ import { subscribe } from "../controllers/subscribe.controller.js";
 import type { SubscribeBody } from "../schemas/subscribe.schema.js";
 
 export async function subscribeRoutes(fastify: FastifyInstance) {
-  // POST /api/subscribe - Simplified subscription creation for recurring plans
   fastify.post<{ Body: SubscribeBody }>("/", {
     schema: {
       tags: ["Subscribe"],

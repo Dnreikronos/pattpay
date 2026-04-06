@@ -4,14 +4,6 @@ import { executePayment } from "./services/solana.service.js";
 const MAX_RETRY_ATTEMPTS = 5;
 const BASE_RETRY_DELAY_MS = 60000; // 1 minute
 
-/**
- * Calculate next retry time with exponential backoff
- * Retry 1: 1 minute
- * Retry 2: 2 minutes
- * Retry 3: 4 minutes
- * Retry 4: 8 minutes
- * Retry 5: 16 minutes
- */
 const calculateNextRetry = (retryCount: number): Date => {
   const delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, retryCount);
   return new Date(Date.now() + delayMs);
@@ -26,7 +18,6 @@ const processWorker = async () => {
   let retryCount = 0;
 
   try {
-    // Get all pending jobs
     const pendingJobs = await prisma.relayerJob.findMany({
       where: {
         status: "PENDING",
@@ -54,7 +45,6 @@ const processWorker = async () => {
 
     console.log(`📊 Found ${pendingJobs.length} pending jobs to process`);
 
-    // Process each job
     for (const job of pendingJobs) {
       console.log(
         `📦 Processing job ${job.id} for subscription ${
@@ -66,7 +56,6 @@ const processWorker = async () => {
         const subscription = job.subscription;
         const plan = subscription.plan;
 
-        // Find the token price for this subscription
         const planToken = plan.planTokens.find(
           (t) => t.tokenMint === subscription.token_mint
         );
@@ -77,7 +66,6 @@ const processWorker = async () => {
           );
         }
 
-        // Execute payment on-chain
         console.log(
           `💳 Charging ${planToken.price} ${planToken.symbol} for subscription ${subscription.id}`
         );
@@ -93,7 +81,6 @@ const processWorker = async () => {
 
         console.log(`✅ Payment executed successfully. TX: ${txSignature}`);
 
-        // Create successful payment execution record
         await prisma.paymentExecution.create({
           data: {
             subscriptionId: subscription.id,
@@ -107,7 +94,6 @@ const processWorker = async () => {
           },
         });
 
-        // Update subscription - set next due date
         const nextDueAt = new Date(subscription.nextDueAt);
         if (plan.periodSeconds) {
           nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
@@ -121,7 +107,6 @@ const processWorker = async () => {
           },
         });
 
-        // Mark job as successful
         await prisma.relayerJob.update({
           where: { id: job.id },
           data: {
@@ -137,7 +122,6 @@ const processWorker = async () => {
           error instanceof Error ? error.message : String(error);
         console.error(`❌ Job ${job.id} failed:`, errorMessage);
 
-        // Create failed payment execution record
         await prisma.paymentExecution.create({
           data: {
             subscriptionId: job.subscription.id,
@@ -156,7 +140,6 @@ const processWorker = async () => {
 
         const currentRetryCount = job.retryCount + 1;
 
-        // Check if we should retry or mark as failed
         if (currentRetryCount < MAX_RETRY_ATTEMPTS) {
           const nextRetry = calculateNextRetry(currentRetryCount);
           await prisma.relayerJob.update({
@@ -175,7 +158,6 @@ const processWorker = async () => {
             } scheduled for retry ${currentRetryCount}/${MAX_RETRY_ATTEMPTS} at ${nextRetry.toISOString()}`
           );
         } else {
-          // Max retries reached, mark subscription as EXPIRED
           await prisma.subscription.update({
             where: { id: job.subscription.id },
             data: { status: "EXPIRED" },
@@ -211,7 +193,6 @@ const processWorker = async () => {
   }
 };
 
-// Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   console.log(`🛑 Processor received ${signal}, shutting down...`);
   await prisma.$disconnect();

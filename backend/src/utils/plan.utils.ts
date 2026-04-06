@@ -1,7 +1,7 @@
 import type { Plan, PlanToken, Receiver } from "@prisma/client";
 import { config } from "../config.js";
 
-// Type for Plan with relations needed for transformation
+/
 export type PlanWithRelations = Plan & {
   receiver: Receiver;
   planTokens: PlanToken[];
@@ -10,7 +10,7 @@ export type PlanWithRelations = Plan & {
   };
 };
 
-// Frontend CheckoutLink type
+
 export interface CheckoutLink {
   id: string;
   name: string;
@@ -42,23 +42,17 @@ export interface CheckoutLink {
   periodSeconds?: number;
 }
 
-/**
- * Transforms a Plan from database format to frontend CheckoutLink format
- */
 export function transformPlanToCheckoutLink(
   plan: PlanWithRelations
 ): CheckoutLink {
   const frontendUrl =
     config.FRONTEND_URL.split(",")[0] || "http://localhost:3000";
 
-  // Extract USDC and USDT amounts from planTokens
   const usdcToken = plan.planTokens.find((t) => t.symbol === "USDC");
   const usdtToken = plan.planTokens.find((t) => t.symbol === "USDT");
 
-  // Map status to lowercase
   const status = plan.status === "ACTIVE" ? "active" : "inactive";
 
-  // Get totalPayments from count or default to 0
   const totalPayments = plan._count?.paymentExecutions ?? 0;
 
   return {
@@ -93,9 +87,6 @@ export function transformPlanToCheckoutLink(
   };
 }
 
-/**
- * Calculates the date range based on datePreset filter
- */
 export function getDateRangeFromPreset(
   preset: "last-7-days" | "last-30-days" | "last-90-days"
 ): { from: Date; to: Date } {
