@@ -40,12 +40,11 @@ A Web3 payment gateway built natively on Solana for subscriptions and recurring 
 
 ## Architecture
 
-```
-pattpay/
-├── frontend/    Next.js 15 + React 19 + TailwindCSS v4
-├── backend/     Fastify + Prisma + PostgreSQL
-├── crypto/      Solana smart contracts (Anchor/Rust)
-└── docs/        Project documentation
+```mermaid
+graph LR
+    A[pattpay/] --> B["frontend/ — Next.js 15 + React 19 + TailwindCSS v4"]
+    A --> C["backend/ — Fastify + Prisma + PostgreSQL"]
+    A --> D["crypto/ — Solana smart contracts (Anchor/Rust)"]
 ```
 
 | Layer | Stack |
@@ -61,17 +60,16 @@ pattpay/
 
 ### Recurring Subscriptions
 
-```
-Payer                    Smart Contract               Backend
-  │                           │                          │
-  ├── approve_delegate() ────>│  Create PDA              │
-  │   (signs tx in wallet)    │  + set delegate authority │
-  │                           │                          │
-  │                           │<──── charge_subscription()│  (automated)
-  │                           │      via relayer PDA      │
-  │                           │                          │
-  │                           │── transfer tokens ──────>│  Record payment
-  │                           │                          │
+```mermaid
+sequenceDiagram
+    participant Payer
+    participant SC as Smart Contract
+    participant Backend
+
+    Payer->>SC: approve_delegate() (signs tx in wallet)
+    Note over SC: Create PDA + set delegate authority
+    Backend->>SC: charge_subscription() via relayer PDA (automated)
+    SC->>Backend: Transfer tokens, record payment
 ```
 
 1. Payer authorizes a total amount via `approve_delegate` — a PDA gains delegate authority over their token account
@@ -85,13 +83,11 @@ Payer                    Smart Contract               Backend
 
 ### Automated Billing Pipeline
 
-```
-┌──────────────┐        ┌──────────────┐        ┌──────────────┐
-│   Scheduler  │───────>│  RelayerJob  │───────>│  Processor   │
-│ (Daily 00:00)│        │  (Database)  │        │ (4x per day) │
-└──────────────┘        └──────────────┘        └──────────────┘
-  Finds due               Creates pending         Executes on-chain
-  subscriptions           jobs with retry          payments
+```mermaid
+graph LR
+    A["Scheduler<br/>(Daily 00:00)"] -->|Finds due subscriptions| B["RelayerJob<br/>(Database)"]
+    B -->|Creates pending jobs with retry| C["Processor<br/>(4x per day)"]
+    C -->|Executes on-chain payments| D((Done))
 ```
 
 ---
