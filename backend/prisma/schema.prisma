@@ -61,6 +61,7 @@ model Subscription {
   relayerJobs       RelayerJob[]
   paymentExecutions PaymentExecution[]
 
+  @@index([status, nextDueAt])
   @@map("subscriptions")
 }
 
@@ -139,6 +140,7 @@ model RelayerJob {
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
+  @@index([status, nextRetryAt])
   @@map("relayer_jobs")
 }
 
