@@ -41,7 +41,7 @@ model Subscription {
   id                  String             @id @default(uuid()) @db.Uuid
   planId              String             @map("plan_id") @db.Uuid
   payerId             String             @map("payer_id") @db.Uuid
-  token_mint          String             @map("token_mint")
+  tokenMint           String             @map("token_mint")
   status              SubscriptionStatus @default(ACTIVE)
   nextDueAt           DateTime           @map("next_due_at")
   lastPaidAt          DateTime           @map("last_paid_at")

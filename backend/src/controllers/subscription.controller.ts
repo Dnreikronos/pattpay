@@ -92,7 +92,7 @@ export const createSubscription = async (
       data: {
         planId: validatedData.planId,
         payerId: validatedData.payerId,
-        token_mint: validatedData.tokenMint,
+        tokenMint: validatedData.tokenMint,
         status: "ACTIVE",
         nextDueAt,
         lastPaidAt: now,
@@ -151,7 +151,7 @@ export const getSubscriptions = async (
     }
 
     if (validatedQuery.tokenMint) {
-      where.token_mint = validatedQuery.tokenMint;
+      where.tokenMint = validatedQuery.tokenMint;
     }
 
     if (validatedQuery.dateFrom || validatedQuery.dateTo) {
