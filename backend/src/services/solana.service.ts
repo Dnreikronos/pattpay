@@ -106,8 +106,8 @@ export const executePayment = async (params: {
     tokenProgramId
   );
 
-  const amountInSmallestUnit =
-    params.amount * Math.pow(10, params.tokenDecimals);
+  const amountInSmallestUnit = new anchor.BN(params.amount)
+    .mul(new anchor.BN(10).pow(new anchor.BN(params.tokenDecimals)));
 
   // Strip hyphens from UUID to match PDA seed derivation
   const seedId = params.subscriptionId.replace(/-/g, "");
@@ -115,7 +115,7 @@ export const executePayment = async (params: {
   const tx = await (program.methods as any)
     .chargeSubscription(
       seedId,
-      new anchor.BN(amountInSmallestUnit)
+      amountInSmallestUnit
     )
     .accounts({
       delegateApproval: delegateApprovalPDA,
