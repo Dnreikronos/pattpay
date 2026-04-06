@@ -122,18 +122,20 @@ model PlanToken {
 
 enum RelayerJobStatus {
   PENDING
+  PROCESSING
   SUCCESS
   FAILED
 }
 
 model RelayerJob {
-  id             String           @id @default(uuid()) @db.Uuid
-  subscriptionId String           @map("subscription_id") @db.Uuid
-  nextRetryAt    DateTime         @map("next_retry_at")
-  executedAt     DateTime?        @map("executed_at")
-  status         RelayerJobStatus @default(PENDING)
-  retryCount     Int              @default(0) @map("retry_count")
-  errorMessage   String?          @map("error_message")
+  id              String           @id @default(uuid()) @db.Uuid
+  subscriptionId  String           @map("subscription_id") @db.Uuid
+  idempotencyKey  String           @unique @map("idempotency_key")
+  nextRetryAt     DateTime         @map("next_retry_at")
+  executedAt      DateTime?        @map("executed_at")
+  status          RelayerJobStatus @default(PENDING)
+  retryCount      Int              @default(0) @map("retry_count")
+  errorMessage    String?          @map("error_message")
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 

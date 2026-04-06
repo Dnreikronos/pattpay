@@ -20,7 +20,7 @@ const processWorker = async () => {
   try {
     const pendingJobs = await prisma.relayerJob.findMany({
       where: {
-        status: "PENDING",
+        status: { in: ["PENDING", "PROCESSING"] },
         nextRetryAt: { lte: new Date() },
       },
       include: {
@@ -66,6 +66,39 @@ const processWorker = async () => {
           );
         }
 
+        // Idempotency guard: check if this job already produced a successful payment
+        const existingPayment = await prisma.paymentExecution.findFirst({
+          where: {
+            subscriptionId: subscription.id,
+            status: "SUCCESS",
+            executedBy: "relayer",
+            executedAt: { gte: subscription.lastPaidAt },
+          },
+        });
+
+        if (existingPayment) {
+          console.log(
+            `⏭️ Job ${job.id} already has a successful payment (TX: ${existingPayment.txSignature}), skipping`
+          );
+          await prisma.relayerJob.update({
+            where: { id: job.id },
+            data: { status: "SUCCESS", executedAt: existingPayment.executedAt },
+          });
+          successCount++;
+          continue;
+        }
+
+        // Atomically claim the job to prevent concurrent execution
+        const claimed = await prisma.relayerJob.updateMany({
+          where: { id: job.id, status: { in: ["PENDING", "PROCESSING"] } },
+          data: { status: "PROCESSING" },
+        });
+
+        if (claimed.count === 0) {
+          console.log(`⏭️ Job ${job.id} already claimed by another worker, skipping`);
+          continue;
+        }
+
         console.log(
           `💳 Charging ${planToken.price} ${planToken.symbol} for subscription ${subscription.id}`
         );
@@ -81,39 +114,40 @@ const processWorker = async () => {
 
         console.log(`✅ Payment executed successfully. TX: ${txSignature}`);
 
-        await prisma.paymentExecution.create({
-          data: {
-            subscriptionId: subscription.id,
-            planId: plan.id,
-            txSignature,
-            executedBy: "relayer",
-            status: "SUCCESS",
-            executedAt: new Date(),
-            tokenMint: subscription.token_mint,
-            amount: planToken.price,
-          },
-        });
-
+        // Atomic commit: record payment + advance subscription + mark job done
         const nextDueAt = new Date(subscription.nextDueAt);
         if (plan.periodSeconds) {
           nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
         }
 
-        await prisma.subscription.update({
-          where: { id: subscription.id },
-          data: {
-            lastPaidAt: new Date(),
-            nextDueAt,
-          },
-        });
-
-        await prisma.relayerJob.update({
-          where: { id: job.id },
-          data: {
-            status: "SUCCESS",
-            executedAt: new Date(),
-          },
-        });
+        await prisma.$transaction([
+          prisma.paymentExecution.create({
+            data: {
+              subscriptionId: subscription.id,
+              planId: plan.id,
+              txSignature,
+              executedBy: "relayer",
+              status: "SUCCESS",
+              executedAt: new Date(),
+              tokenMint: subscription.token_mint,
+              amount: planToken.price,
+            },
+          }),
+          prisma.subscription.update({
+            where: { id: subscription.id },
+            data: {
+              lastPaidAt: new Date(),
+              nextDueAt,
+            },
+          }),
+          prisma.relayerJob.update({
+            where: { id: job.id },
+            data: {
+              status: "SUCCESS",
+              executedAt: new Date(),
+            },
+          }),
+        ]);
 
         successCount++;
         console.log(`✅ Job ${job.id} completed successfully`);
@@ -145,6 +179,7 @@ const processWorker = async () => {
           await prisma.relayerJob.update({
             where: { id: job.id },
             data: {
+              status: "PENDING",
               retryCount: currentRetryCount,
               nextRetryAt: nextRetry,
               errorMessage: errorMessage,

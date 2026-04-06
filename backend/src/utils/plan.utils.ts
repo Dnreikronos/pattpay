@@ -1,7 +1,6 @@
 import type { Plan, PlanToken, Receiver } from "@prisma/client";
 import { config } from "../config.js";
 
-/
 export type PlanWithRelations = Plan & {
   receiver: Receiver;
   planTokens: PlanToken[];
