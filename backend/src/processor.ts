@@ -151,6 +151,11 @@ const processWorker = async () => {
         const nextDueAt = new Date(subscription.nextDueAt);
         if (plan.periodSeconds) {
           nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
+          // If nextDueAt is still in the past (late payment), advance to the next future period
+          const now = Date.now();
+          while (nextDueAt.getTime() <= now) {
+            nextDueAt.setSeconds(nextDueAt.getSeconds() + plan.periodSeconds);
+          }
         }
 
         await prisma.$transaction([
