@@ -85,7 +85,7 @@ export const createSubscription = async (
     }
 
     const totalApprovedAmount = plan.durationMonths
-      ? planToken.price.toNumber() * plan.durationMonths
+      ? planToken.price.mul(plan.durationMonths)
       : planToken.price;
 
     const subscription = await prisma.subscription.create({
