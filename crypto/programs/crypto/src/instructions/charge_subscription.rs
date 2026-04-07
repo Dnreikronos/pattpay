@@ -10,6 +10,8 @@ pub fn charge_subscription_handler(
     _subscription_id: String,
     amount: u64,
 ) -> Result<()> {
+    require!(amount > 0, ErrorCode::InvalidAmount);
+
     require!(
         ctx.accounts.backend.key() == AUTHORIZED_BACKEND,
         ErrorCode::Unauthorized

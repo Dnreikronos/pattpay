@@ -27,7 +27,10 @@ describe("crypto", () => {
 
   before(async () => {
     receiver = Keypair.generate();
-    backend = Keypair.generate();
+    // Create backend from a deterministic seed to match AUTHORIZED_BACKEND constant
+    // This ensures the authorization check is properly tested end-to-end
+    const seed = Buffer.from("pattpay-test-backend-key-seed-3!");
+    backend = Keypair.fromSeed(seed);
 
     const sig = await provider.connection.requestAirdrop(
       backend.publicKey,

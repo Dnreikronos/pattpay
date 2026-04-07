@@ -8,6 +8,8 @@ pub fn approve_delegate_handler(
     subscription_id: String,
     approved_amount: u64,
 ) -> Result<()> {
+    require!(approved_amount > 0, crate::errors::ErrorCode::InvalidAmount);
+
     let delegate_approval = &mut ctx.accounts.delegate_approval;
 
     delegate_approval.payer = ctx.accounts.payer.key();
