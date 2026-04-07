@@ -10,4 +10,6 @@ pub enum ErrorCode {
     InvalidTokenAccount,
     #[msg("Arithmetic overflow")]
     ArithmeticOverflow,
+    #[msg("Amount must be greater than zero")]
+    InvalidAmount,
 }
