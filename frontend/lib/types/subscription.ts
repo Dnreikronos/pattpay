@@ -12,6 +12,7 @@ export interface SubscribeRequest {
 
   // Subscription details
   planId: string;
+  subscriptionId: string;
   tokenMint: string;
 
   // On-chain delegation proof

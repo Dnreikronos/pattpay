@@ -27,6 +27,7 @@ import z from "zod";
 export const createSubscriptionSchema = z.object({
   planId: z.string().uuid("Invalid plan ID"),
   payerId: z.string().uuid("Invalid payer ID"),
+  subscriptionId: z.string().uuid("Invalid subscription ID"),
   tokenMint: z
     .string()
     .regex(

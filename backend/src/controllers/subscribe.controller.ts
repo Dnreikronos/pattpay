@@ -113,6 +113,7 @@ export const subscribe = async (
     const verification = await verifyDelegationTransaction({
       txSignature: validatedData.delegateTxSignature,
       expectedPayerWallet: validatedData.payer.walletAddress,
+      subscriptionId: validatedData.subscriptionId,
     });
 
     if (!verification.valid) {

@@ -72,6 +72,7 @@ export const createSubscription = async (
     const verification = await verifyDelegationTransaction({
       txSignature: validatedData.delegateTxSignature,
       expectedPayerWallet: payer.walletAddress,
+      subscriptionId: validatedData.subscriptionId,
     });
 
     if (!verification.valid) {
