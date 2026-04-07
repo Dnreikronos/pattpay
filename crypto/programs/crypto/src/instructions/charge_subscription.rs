@@ -8,10 +8,15 @@ use crate::state::DelegateApproval;
 
 pub fn charge_subscription_handler(
     ctx: Context<ChargeSubscription>,
-    _subscription_id: String,
+    subscription_id: String,
     amount: u64,
 ) -> Result<()> {
     require!(amount > 0, ErrorCode::InvalidAmount);
+
+    require!(
+        subscription_id == ctx.accounts.delegate_approval.subscription_id,
+        ErrorCode::InvalidSubscriptionId
+    );
 
     require!(
         ctx.accounts.backend.key() == AUTHORIZED_BACKEND,

@@ -12,4 +12,8 @@ pub enum ErrorCode {
     ArithmeticOverflow,
     #[msg("Amount must be greater than zero")]
     InvalidAmount,
+    #[msg("Receiver does not match receiver token account owner")]
+    InvalidReceiver,
+    #[msg("Subscription ID does not match delegate approval")]
+    InvalidSubscriptionId,
 }

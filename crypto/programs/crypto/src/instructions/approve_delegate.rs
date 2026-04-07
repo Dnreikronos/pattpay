@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface};
 
+use crate::errors::ErrorCode;
 use crate::events::DelegateApproved;
 use crate::state::DelegateApproval;
 
@@ -67,7 +68,10 @@ pub struct ApproveDelegate<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// CHECK: Receiver wallet address
+    /// CHECK: Receiver wallet address, validated against receiver_token_account owner
+    #[account(
+        constraint = receiver.key() == receiver_token_account.owner @ ErrorCode::InvalidReceiver
+    )]
     pub receiver: UncheckedAccount<'info>,
 
     #[account(
