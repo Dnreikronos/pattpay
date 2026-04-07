@@ -186,6 +186,8 @@ describe("crypto", () => {
       .revokeDelegate(subscriptionId)
       .accounts({
         payer: provider.wallet.publicKey,
+        payerTokenAccount,
+        tokenMint,
       })
       .rpc();
 

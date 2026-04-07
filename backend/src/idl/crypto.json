@@ -253,6 +253,16 @@
           "name": "payer",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "payer_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "token_program"
         }
       ],
       "args": [
