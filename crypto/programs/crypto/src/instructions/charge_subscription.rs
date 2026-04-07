@@ -3,6 +3,7 @@ use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface};
 
 use crate::constants::AUTHORIZED_BACKEND;
 use crate::errors::ErrorCode;
+use crate::events::SubscriptionCharged;
 use crate::state::DelegateApproval;
 
 pub fn charge_subscription_handler(
@@ -48,6 +49,16 @@ pub fn charge_subscription_handler(
     )?;
 
     delegate_approval.spent_amount = new_spent;
+
+    emit!(SubscriptionCharged {
+        subscription_id: delegate_approval.subscription_id.clone(),
+        payer: delegate_approval.payer,
+        receiver: ctx.accounts.receiver_token_account.key(),
+        amount,
+        total_spent: new_spent,
+        approved_amount: delegate_approval.approved_amount,
+        timestamp: Clock::get()?.unix_timestamp,
+    });
 
     Ok(())
 }
