@@ -27,6 +27,7 @@ export async function subscribeRoutes(fastify: FastifyInstance) {
         required: [
           "payer",
           "planId",
+          "subscriptionId",
           "tokenMint",
           "delegateTxSignature",
           "delegateAuthority",
@@ -61,6 +62,12 @@ export async function subscribeRoutes(fastify: FastifyInstance) {
             type: "string",
             format: "uuid",
             description: "ID of the recurring payment plan to subscribe to",
+          },
+          subscriptionId: {
+            type: "string",
+            format: "uuid",
+            description:
+              "UUID generated client-side and used as the on-chain PDA seed for approve_delegate",
           },
           tokenMint: {
             type: "string",

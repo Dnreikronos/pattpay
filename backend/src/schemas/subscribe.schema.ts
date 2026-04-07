@@ -21,6 +21,7 @@ export const subscribeSchema = z.object({
   }),
 
   planId: z.uuid("Invalid plan ID"),
+  subscriptionId: z.uuid("Invalid subscription ID"),
   tokenMint: z
     .string()
     .regex(

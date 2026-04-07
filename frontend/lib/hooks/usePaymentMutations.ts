@@ -65,6 +65,7 @@ export function useSubscribe() {
           email: data.email,
         },
         planId: data.planId,
+        subscriptionId: data.subscriptionId,
         tokenMint: data.tokenMint,
         delegateTxSignature: approvalResult.txSignature,
         delegateAuthority: approvalResult.delegateAuthority,

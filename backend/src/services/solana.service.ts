@@ -225,9 +225,14 @@ export const verifyOneTimePayment = async (params: {
   };
 };
 
+const APPROVE_DELEGATE_DISCRIMINATOR = Buffer.from([
+  68, 6, 248, 64, 195, 222, 182, 223,
+]);
+
 export const verifyDelegationTransaction = async (params: {
   txSignature: string;
   expectedPayerWallet: string;
+  subscriptionId: string;
 }): Promise<{ valid: boolean; reason?: string }> => {
   const { connection } = initializeSolana();
 
@@ -242,14 +247,20 @@ export const verifyDelegationTransaction = async (params: {
   const programIdStr = PROGRAM_ID.toBase58();
   const instructions = tx.transaction.message.instructions;
 
-  const programInvoked = instructions.some(
-    (ix) => ix.programId.toBase58() === programIdStr,
-  );
+  const approveDelegateInvoked = instructions.some((ix) => {
+    if (ix.programId.toBase58() !== programIdStr) return false;
+    if (!("data" in ix)) return false;
+    const decoded = Buffer.from(anchor.utils.bytes.bs58.decode(ix.data as string));
+    return decoded
+      .subarray(0, 8)
+      .equals(APPROVE_DELEGATE_DISCRIMINATOR);
+  });
 
-  if (!programInvoked) {
+  if (!approveDelegateInvoked) {
     return {
       valid: false,
-      reason: "Transaction did not invoke the PattPay program",
+      reason:
+        "Transaction did not invoke the approve_delegate instruction on the PattPay program",
     };
   }
 
@@ -261,6 +272,21 @@ export const verifyDelegationTransaction = async (params: {
     return {
       valid: false,
       reason: "Expected payer wallet did not sign the transaction",
+    };
+  }
+
+  const payerPubkey = new PublicKey(params.expectedPayerWallet);
+  const { delegateApprovalPDA } = derivePDAs(
+    params.subscriptionId,
+    payerPubkey,
+  );
+  const accountInfo = await connection.getAccountInfo(delegateApprovalPDA);
+
+  if (accountInfo === null) {
+    return {
+      valid: false,
+      reason:
+        "DelegateApproval PDA does not exist on-chain, delegation not confirmed",
     };
   }
 
