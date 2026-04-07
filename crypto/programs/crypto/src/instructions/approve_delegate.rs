@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface};
 
 use crate::errors::ErrorCode;
+use crate::events::DelegateApproved;
 use crate::state::DelegateApproval;
 
 pub fn approve_delegate_handler(
@@ -35,6 +36,15 @@ pub fn approve_delegate_handler(
         ),
         approved_amount,
     )?;
+
+    emit!(DelegateApproved {
+        subscription_id: delegate_approval.subscription_id.clone(),
+        payer: ctx.accounts.payer.key(),
+        receiver: ctx.accounts.receiver.key(),
+        token_mint: ctx.accounts.token_mint.key(),
+        approved_amount,
+        timestamp: delegate_approval.created_at,
+    });
 
     Ok(())
 }

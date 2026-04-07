@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface};
 
 use crate::errors::ErrorCode;
+use crate::events::DelegateRevoked;
 use crate::state::DelegateApproval;
 
 pub fn revoke_delegate_handler(
@@ -12,6 +13,8 @@ pub fn revoke_delegate_handler(
         subscription_id == ctx.accounts.delegate_approval.subscription_id,
         ErrorCode::InvalidSubscriptionId
     );
+
+    let total_spent = ctx.accounts.delegate_approval.spent_amount;
     token_interface::revoke(CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         token_interface::Revoke {
@@ -19,6 +22,13 @@ pub fn revoke_delegate_handler(
             authority: ctx.accounts.payer.to_account_info(),
         },
     ))?;
+
+    emit!(DelegateRevoked {
+        subscription_id,
+        payer: ctx.accounts.payer.key(),
+        total_spent,
+        timestamp: Clock::get()?.unix_timestamp,
+    });
 
     Ok(())
 }
