@@ -4,7 +4,9 @@ import { Crypto } from "../target/types/crypto";
 import {
   createMint,
   getOrCreateAssociatedTokenAccount,
-  mintTo
+  getAccount,
+  mintTo,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { assert } from "chai";
@@ -21,6 +23,8 @@ describe("crypto", () => {
   let receiver: Keypair;
   let backend: Keypair;
 
+  const AUTHORIZED_BACKEND = new PublicKey("qHdZYdtnmkbSfRWUMNMftyUBeeotygF2yhWdmvfThQ2");
+
   // Use a UUID without hyphens (32 chars) to match production behavior
   const subscriptionId = "a6d60718428e446ba9663f120f97b44b";
   const approvedAmount = 1000000;
@@ -31,6 +35,10 @@ describe("crypto", () => {
     // This ensures the authorization check is properly tested end-to-end
     const seed = Buffer.from("pattpay-test-backend-key-seed-3!");
     backend = Keypair.fromSeed(seed);
+    assert.isTrue(
+      backend.publicKey.equals(AUTHORIZED_BACKEND),
+      "Test backend keypair must match on-chain AUTHORIZED_BACKEND constant"
+    );
 
     const sig = await provider.connection.requestAirdrop(
       backend.publicKey,
@@ -191,14 +199,25 @@ describe("crypto", () => {
         payer: provider.wallet.publicKey,
         payerTokenAccount,
         tokenMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
       })
       .rpc();
 
+    // Verify PDA closure
     try {
       await program.account.delegateApproval.fetch(delegateApproval);
       assert.fail("Account should be closed");
     } catch (err) {
       assert.include(err.toString(), "Account does not exist");
     }
+
+    // Verify SPL-level delegate revocation
+    const tokenAccount = await getAccount(provider.connection, payerTokenAccount);
+    assert.isNull(tokenAccount.delegate, "Token account delegate should be null after revocation");
+    assert.equal(
+      Number(tokenAccount.delegatedAmount),
+      0,
+      "Delegated amount should be zero after revocation"
+    );
   });
 });
