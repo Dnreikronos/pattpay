@@ -141,7 +141,7 @@ const fetchConfirmedTransaction = async (
 ): Promise<ParsedTransactionWithMeta | null> => {
   const tx = await connection.getParsedTransaction(signature, {
     maxSupportedTransactionVersion: 0,
-    commitment: "finalized",
+    commitment: "confirmed",
   });
 
   if (!tx || tx.meta?.err) return null;
